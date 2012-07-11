@@ -42,15 +42,15 @@ namespace Core
         /// </summary>
         /// <param name="key">A attribute name</param>
         /// <returns>An attribute</returns>
-        public Attribute this[string key]
+        public string this[string name]
         {
             get
             {
-                return _Items[key];
+                return _Items[name] != null ? _Items[name].Value : null;
             }
             set
             {
-                _Items[key] = value;
+                _Items[name] = new Attribute(name, value);
             }
         }
     }
