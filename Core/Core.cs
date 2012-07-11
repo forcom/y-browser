@@ -89,11 +89,11 @@ namespace Core
         public ElementType Type { get; set; }
 
         /// <summary>
-        /// Get or set an attribute in the element
+        /// Get or set an attribute value in the element
         /// </summary>
         /// <param name="attribute">Attribute Name</param>
-        /// <returns>An attribute</returns>
-        public Attribute this[string attribute]
+        /// <returns>The attribute value</returns>
+        public string this[string attribute]
         {
             get
             {
@@ -110,9 +110,10 @@ namespace Core
         /// </summary>
         /// <param name="name">Element name</param>
         /// <param name="starttag">Tag type</param>
-        public Element(string name, bool starttag = true)
+        public Element(string name, ElementType type = ElementType.Structure, bool starttag = true)
         {
             Name = name;
+            Type = type;
             IsStartTag = starttag;
         }
     }
@@ -147,7 +148,7 @@ namespace Core
         {
             get
             {
-                return Items.FindAll(x => x.Attributes["name"] != null ? x.Attributes["name"].Name == name : false);
+                return Items.FindAll(x => x.Attributes["name"] == name);
             }
         }
     }
