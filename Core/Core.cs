@@ -118,9 +118,9 @@ namespace Core
     }
 
     /// <summary>
-    /// Represents a collection of elements
+    /// Represents a html document.
     /// </summary>
-    public class ElementCollection
+    public class Document
     {
         List<Element> _Items = new List<Element>();
         /// <summary>
@@ -129,40 +129,25 @@ namespace Core
         public List<Element> Items { get { return _Items; } }
 
         /// <summary>
-        /// Elements with the name
-        /// </summary>
-        /// <param name="name">Name of the element</param>
-        /// <returns>Elements with the name</returns>
-        public Element[] this[string name]
-        {
-            get
-            {
-                return Items.FindAll(x => x.Attributes["name"] != null ? x.Attributes["name"].Name == name : false).ToArray();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Represents a html document.
-    /// </summary>
-    public class Document
-    {
-        ElementCollection _Items = new ElementCollection();
-        /// <summary>
-        /// A collection of elements
-        /// </summary>
-        public ElementCollection Items { get { return _Items; } }
-
-        /// <summary>
-        /// A kind of elements
+        /// Get the elements by the type
         /// </summary>
         /// <param name="element">Element type</param>
-        /// <returns>Elements</returns>
-        public Element[] this[string element]
+        /// <returns>Elements with the type</returns>
+        public List<Element> GetByElement(string element)
+        {
+            return Items.FindAll(x => x.Name == element);
+        }
+
+        /// <summary>
+        /// Get the elements by name
+        /// </summary>
+        /// <param name="name">Name of the element</param>
+        /// <returns>Elements with the given name</returns>
+        public List<Element> this[string name]
         {
             get
             {
-                return Items.Items.FindAll(x => x.Name == element).ToArray();
+                return Items.FindAll(x => x.Attributes["name"] != null ? x.Attributes["name"].Name == name : false);
             }
         }
     }
