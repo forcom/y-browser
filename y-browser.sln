@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		y-browser.vsmdi = y-browser.vsmdi
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YWebView", "YWebView\YWebView.csproj", "{50A98207-FCD7-41CE-8FD8-8DF8241093C8}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = y-browser.vsmdi
@@ -46,6 +48,16 @@ Global
 		{64CC1154-3EB0-4E7A-8718-4A9EE8BF3587}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{64CC1154-3EB0-4E7A-8718-4A9EE8BF3587}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{64CC1154-3EB0-4E7A-8718-4A9EE8BF3587}.Release|x86.ActiveCfg = Release|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
