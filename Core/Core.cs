@@ -37,6 +37,7 @@ namespace Core
     public class AttributeCollection
     {
         Dictionary<string, Attribute> _Items = new Dictionary<string, Attribute>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, Attribute> Items { get { return _Items; } }
         /// <summary>
         /// Get or set of attributes in the collection
         /// </summary>
@@ -67,7 +68,9 @@ namespace Core
         {
             Special,
             Structure,
-            Markup
+            Markup,
+            Object,
+            Text
         }
 
         /// <summary>
@@ -136,7 +139,7 @@ namespace Core
         /// <returns>Elements with the type</returns>
         public List<Element> GetByElement(string element)
         {
-            return Items.FindAll(x => x.Name == element);
+            return Items.FindAll(x => x.Type != Element.ElementType.Text && x.Name == element);
         }
 
         /// <summary>
