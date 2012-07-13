@@ -15,7 +15,8 @@ namespace Core
         {
             Text,
             Tag,
-            String
+            String,
+            Comment
         }
 
         static bool Initialized = false;
@@ -210,6 +211,11 @@ namespace Core
                     str = SubstituteSpecialChar(str);
                     elem = new Element(str, Element.ElementType.Text);
                     break;
+                case TokenType.Comment :
+                    str = str.Substring(4, str.Length - 7);
+                    elem = new Element("--", Element.ElementType.Special);
+                    elem.Attributes[str] = "";
+                    break;
             }
             // If it failed to get an element, assume that it is a text.
             return elem ?? GetElement(TokenType.Text, orig_str);
@@ -235,8 +241,8 @@ namespace Core
                 switch (HtmlString[pos])
                 {
                     case '<' :
-                        // If it is in a string, ignore
-                        if (type == TokenType.String) break;
+                        // If it is in a string or comment, ignore
+                        if (type == TokenType.String || type == TokenType.Comment) break;
                         // If it is in a tag, actually previous one is not a tag. so change previous one as Text
                         if (type == TokenType.Tag)
                         {
@@ -253,6 +259,17 @@ namespace Core
                             }
 
                             type = TokenType.Tag;
+                            sp = pos;
+                        }
+                        //If it is a comment
+                        else if (pos + 4 < HtmlString.Length && HtmlString[pos + 1] == '!' && HtmlString[pos + 2] == '-' && HtmlString[pos + 3] == '-')
+                        {
+                            if ( sp <= pos - 1 )
+                            {
+                                doc.Items.Add(GetElement(TokenType.Text, HtmlString.Substring(sp, pos - sp)));
+                            }
+
+                            type = TokenType.Comment;
                             sp = pos;
                         }
                         // If it is possible to be an end or special tag, add previous one.
@@ -278,6 +295,16 @@ namespace Core
                             doc.Items.Add(GetElement(TokenType.Tag, HtmlString.Substring(sp, pos - sp + 1)));
                             sp = pos + 1;
                             type = TokenType.Text;
+                        }
+                        else if (type == TokenType.Comment)
+                        {
+                            // If it is the end of a comment
+                            if (pos - 2 > 0 && HtmlString[pos - 2] == '-' && HtmlString[pos - 1] == '-')
+                            {
+                                doc.Items.Add(GetElement(TokenType.Comment, HtmlString.Substring(sp, pos - sp + 1)));
+                                sp = pos + 1;
+                                type = TokenType.Text;
+                            }
                         }
                         break;
                     case '\'' :

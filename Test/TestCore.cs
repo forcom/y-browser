@@ -254,6 +254,7 @@ to Authors of Internet-Drafts</CITE></A>
 </ADDRESS>
 </BODY></HTML>
 ";
+            string html3 = @"<!-- <!DOCTYPE HTML><html><head></head></html> -->";
             HtmlReader.GetDocument(html);
         }
 
