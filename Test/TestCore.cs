@@ -60,11 +60,7 @@ namespace Test
         //
         #endregion
 
-#if DEBUG
-        [TestMethod]
-        public void TestHtmlReader()
-        {
-            string html = @"<!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
+        public string HtmlCase01 = @"<!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0//EN"">
 <HTML>
 <!-- Here’s a good place to put a comment. -->
 <HEAD>
@@ -93,7 +89,7 @@ end tag has been omitted.
 <IMG SRC =""triangle.xbm"" alt=""Warning: "">
 Be sure to read these <b>bold instructions</b>.
 </BODY></HTML>";
-            string html2 = @"<!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0 Strict//EN"">
+        public string HtmlCase02 = @"<!DOCTYPE HTML PUBLIC ""-//IETF//DTD HTML 2.0 Strict//EN"">
 <HTML>
 <HEAD>
   <TITLE>HTML Working Group of the IETF (at W3C)</TITLE>
@@ -255,9 +251,15 @@ to Authors of Internet-Drafts</CITE></A>
 </ADDRESS>
 </BODY></HTML>
 ";
-            string html3 = @"<!-- <!DOCTYPE HTML><html><head></head></html> -->";
-            var res = HtmlTokenizer.Tokenize(html2);
-            HtmlReader.GetDocument(html);
+        public string HtmlCase03 = @"<!-- <!DOCTYPE HTML><html><head></head></html> -->";
+
+#if DEBUG
+        [TestMethod]
+        public void TestHtmlReader()
+        {
+            var res = HtmlTokenizer.Tokenize(HtmlCase02);
+            HtmlReader.GetDocument(HtmlCase01);
+            Assert.Inconclusive();
         }
 
         [TestMethod]

@@ -10,11 +10,13 @@ namespace Core
     /// Tokenize a html document
     /// </summary>
 #if DEBUG
-    public class HtmlTokenizer
-#else
-    class HtmlTokenizer
+    public
 #endif
+    class HtmlTokenizer
     {
+#if DEBUG
+        public
+#endif
         enum TokenType
         {
             Text,
@@ -35,6 +37,9 @@ namespace Core
         /// <summary>
         /// Initialize HtmlTokenizer
         /// </summary>
+#if DEBUG
+    public
+#endif
         static void Init()
         {
             EntityMap.Add("lt", "<");
@@ -247,6 +252,9 @@ namespace Core
         /// </summary>
         /// <param name="c">A character to check</param>
         /// <returns>True if can be used, otherwise false.</returns>
+#if DEBUG
+    public
+#endif
         static bool IsTagStartPossibleCharacter(char c)
         {
             return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '.' || c == '-';
@@ -257,6 +265,9 @@ namespace Core
         /// </summary>
         /// <param name="str">A string contains data characters</param>
         /// <returns>Replaced string.</returns>
+#if DEBUG
+    public
+#endif
         static string SubstituteSpecialChar(string str)
         {
             var res = MatchEntity.Matches(str);
@@ -281,6 +292,9 @@ namespace Core
         /// <param name="type">Type of a string</param>
         /// <param name="str">A tag or text string</param>
         /// <returns>An Element</returns>
+#if DEBUG
+    public
+#endif
         static Element GetElement(TokenType type, string str)
         {
             string orig_str = str;
@@ -483,6 +497,9 @@ namespace Core
         }
     }
 
+#if DEBUG
+    public
+#endif
     class HtmlParser
     {
         void Init()
