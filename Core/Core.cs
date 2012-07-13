@@ -108,6 +108,11 @@ namespace Core
             }
         }
 
+        public override string ToString()
+        {
+            return Type + ": " + Name;
+        }
+
         /// <summary>
         /// An element
         /// </summary>
@@ -153,6 +158,76 @@ namespace Core
             {
                 return Items.FindAll(x => x.Attributes["name"] == name);
             }
+        }
+    }
+
+    public class Function
+    {
+        public static string MakeHtml(Document doc)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var i in doc.Items)
+            {
+                switch (i.Type)
+                {
+                    case Element.ElementType.Special:
+                    case Element.ElementType.Object:
+                        sb.Append('<');
+                        if (!i.IsStartTag) sb.Append('/');
+                        sb.Append(i.Name);
+                        foreach (var j in i.Attributes.Items.Values)
+                        {
+                            sb.Append(' ');
+                            sb.Append(j.Name);
+                            if (j.Value != "")
+                            {
+                                sb.Append("=\"");
+                                sb.Append(j.Value);
+                                sb.Append("\"");
+                            }
+                        }
+                        sb.Append(">\n");
+                        break;
+                    case Element.ElementType.Text:
+                        sb.Append(i.Name);
+                        break;
+                    case Element.ElementType.Structure:
+                        sb.Append("\n<");
+                        if (!i.IsStartTag) sb.Append('/');
+                        sb.Append(i.Name);
+                        foreach (var j in i.Attributes.Items.Values)
+                        {
+                            sb.Append(' ');
+                            sb.Append(j.Name);
+                            if (j.Value != "")
+                            {
+                                sb.Append("=\"");
+                                sb.Append(j.Value);
+                                sb.Append("\"");
+                            }
+                        }
+                        sb.Append(">\n");
+                        break;
+                    case Element.ElementType.Markup:
+                        sb.Append("<");
+                        if (!i.IsStartTag) sb.Append('/');
+                        sb.Append(i.Name);
+                        foreach (var j in i.Attributes.Items.Values)
+                        {
+                            sb.Append(' ');
+                            sb.Append(j.Name);
+                            if (j.Value != "")
+                            {
+                                sb.Append("=\"");
+                                sb.Append(j.Value);
+                                sb.Append("\"");
+                            }
+                        }
+                        sb.Append(">");
+                        break;
+                }
+            }
+            return sb.ToString();
         }
     }
 }
