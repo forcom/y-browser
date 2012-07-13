@@ -6,6 +6,313 @@ using System.Text.RegularExpressions;
 
 namespace Core
 {
+    /// <summary>
+    /// Tokenize a html document
+    /// </summary>
+    class HtmlTokenizer
+    {
+        enum TokenType
+        {
+            Text,
+            Tag,
+            String
+        }
+
+        static bool Initialized = false;
+
+        static Dictionary<string, string> EntityMap = new Dictionary<string, string>();
+        static Dictionary<string, Element.ElementType> ElementMap = new Dictionary<string, Element.ElementType>(StringComparer.OrdinalIgnoreCase);
+
+        static Regex MatchEntity = new Regex(@"(?<special>&(?<name>\w+);)|(?<special>&(?<name>\w+))|(?<numeric>&\#(?<code>[0-9]+);)|(?<numeric>&\#(?<code>[0-9]+))");
+        static Regex MatchAttribute = new Regex(@"(?<tag>^[a-zA-Z0-9\.\-]*)|(?<attribute>(?<name>\w+)\s*(=\s*(((?<OpenSQ>\')(?<value>[^\']*)(?<CloseSQ-OpenSQ>\'))|((?<OpenDQ>"")(?<value>[^""]*)(?<CloseDQ-OpenDQ>""))|(?<value>[^\'""\s]+)))?)");
+
+        /// <summary>
+        /// Initialize HtmlTokenizer
+        /// </summary>
+        static void Init()
+        {
+            EntityMap.Add("lt", "<");
+            EntityMap.Add("gt", ">");
+            EntityMap.Add("amp", "&");
+            EntityMap.Add("quot", "\"");
+
+            ElementMap.Add("HTML", Element.ElementType.Structure);
+            ElementMap.Add("HEAD", Element.ElementType.Structure);
+            ElementMap.Add("TITLE", Element.ElementType.Structure);
+            ElementMap.Add("BASE", Element.ElementType.Structure);
+            ElementMap.Add("ISINDEX", Element.ElementType.Structure);
+            ElementMap.Add("LINK", Element.ElementType.Structure);
+            ElementMap.Add("META", Element.ElementType.Structure);
+            ElementMap.Add("NEXTID", Element.ElementType.Structure);
+            ElementMap.Add("BODY", Element.ElementType.Structure);
+            ElementMap.Add("H1", Element.ElementType.Structure);
+            ElementMap.Add("H2", Element.ElementType.Structure);
+            ElementMap.Add("H3", Element.ElementType.Structure);
+            ElementMap.Add("H4", Element.ElementType.Structure);
+            ElementMap.Add("H5", Element.ElementType.Structure);
+            ElementMap.Add("H6", Element.ElementType.Structure);
+            ElementMap.Add("P", Element.ElementType.Structure);
+            ElementMap.Add("PRE", Element.ElementType.Structure);
+            ElementMap.Add("ADDRESS", Element.ElementType.Structure);
+            ElementMap.Add("BLOCKQUOTE", Element.ElementType.Structure);
+            ElementMap.Add("UL", Element.ElementType.Structure);
+            ElementMap.Add("LI", Element.ElementType.Structure);
+            ElementMap.Add("OL", Element.ElementType.Structure);
+            ElementMap.Add("DIR", Element.ElementType.Structure);
+            ElementMap.Add("MENU", Element.ElementType.Structure);
+            ElementMap.Add("DL", Element.ElementType.Structure);
+            ElementMap.Add("DT", Element.ElementType.Structure);
+            ElementMap.Add("DD", Element.ElementType.Structure);
+            ElementMap.Add("CITE", Element.ElementType.Markup);
+            ElementMap.Add("CODE", Element.ElementType.Markup);
+            ElementMap.Add("EM", Element.ElementType.Markup);
+            ElementMap.Add("KBD", Element.ElementType.Markup);
+            ElementMap.Add("SAMP", Element.ElementType.Markup);
+            ElementMap.Add("STRONG", Element.ElementType.Markup);
+            ElementMap.Add("VAR", Element.ElementType.Markup);
+            ElementMap.Add("B", Element.ElementType.Markup);
+            ElementMap.Add("I", Element.ElementType.Markup);
+            ElementMap.Add("TT", Element.ElementType.Markup);
+            ElementMap.Add("A", Element.ElementType.Markup);
+            ElementMap.Add("BR", Element.ElementType.Object);
+            ElementMap.Add("HR", Element.ElementType.Object);
+            ElementMap.Add("IMG", Element.ElementType.Object);
+            ElementMap.Add("FORM", Element.ElementType.Object);
+            ElementMap.Add("INPUT", Element.ElementType.Object);
+            ElementMap.Add("SELECT", Element.ElementType.Object);
+            ElementMap.Add("OPTION", Element.ElementType.Object);
+            ElementMap.Add("TEXTAREA", Element.ElementType.Object);
+            Initialized = true;
+        }
+
+        /// <summary>
+        /// Check if a character can be used as a tag name.
+        /// </summary>
+        /// <param name="c">A character to check</param>
+        /// <returns>True if can be used, otherwise false.</returns>
+        static bool IsTagStartPossibleCharacter(char c)
+        {
+            return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '.' || c == '-';
+        }
+
+        /// <summary>
+        /// Substitute data characters to original character.
+        /// </summary>
+        /// <param name="str">A string contains data characters</param>
+        /// <returns>Replaced string.</returns>
+        static string SubstituteSpecialChar(string str)
+        {
+            var res = MatchEntity.Matches(str);
+            str = MatchEntity.Replace(str, new MatchEvaluator(x =>
+            {
+                if (x.Groups["special"].Success)
+                {
+                    return EntityMap.ContainsKey(x.Groups["name"].Value) ? EntityMap[x.Groups["name"].Value] : x.Value;
+                }
+                else if (x.Groups["numeric"].Success)
+                {
+                    return x.Groups["code"].Success ? ((char)Int32.Parse(x.Groups["code"].Value)).ToString() : x.Value;
+                }
+                return x.Value;
+            }));
+            return str;
+        }
+
+        /// <summary>
+        /// Get an Element from a tag or text string.
+        /// </summary>
+        /// <param name="type">Type of a string</param>
+        /// <param name="str">A tag or text string</param>
+        /// <returns>An Element</returns>
+        static Element GetElement(TokenType type, string str)
+        {
+            string orig_str = str;
+            Element elem = null;
+            switch (type)
+            {
+                case TokenType.Tag :
+                    MatchCollection res = null;
+                    switch (str[1])
+                    {
+                        case '!' :
+                            // Remove <! and >
+                            str = str.Substring(2, str.Length - 3);
+                            res = MatchAttribute.Matches(str);
+                            foreach (Match i in res)
+                            {
+                                if (i.Groups["tag"].Success)
+                                {
+                                    elem = new Element(i.Groups["tag"].Value, Element.ElementType.Special);
+                                    elem.Attributes[str.Substring(i.Index + i.Length)] = "";
+                                    break;
+                                }
+                            }
+                            break;
+                        case '/' :
+                            // Remove </ and >
+                            str = str.Substring(2, str.Length - 3);
+                            res = MatchAttribute.Matches(str);
+                            elem = new Element("", Element.ElementType.Structure, false);
+                            foreach (Match i in res)
+                            {
+                                if (i.Groups["tag"].Success)
+                                {
+                                    if (ElementMap.ContainsKey(i.Groups["tag"].Value))
+                                    {
+                                        elem.Name = i.Groups["tag"].Value;
+                                        elem.Type = ElementMap[elem.Name];
+                                    }
+                                    else
+                                        // Unknown tag.
+                                        break;
+                                }
+                                else if (i.Groups["attribute"].Success)
+                                {
+                                    if (i.Groups["name"].Success)
+                                    {
+                                        elem.Attributes[i.Groups["name"].Value] = i.Groups["value"].Success ? SubstituteSpecialChar(i.Groups["value"].Value) : "";
+                                    }
+                                }
+                            }
+                            if (elem.Name == "") elem = null;
+                            break;
+                        default :
+                            // Remove < and >
+                            str = str.Substring(1, str.Length - 2);
+                            res = MatchAttribute.Matches(str);
+                            elem = new Element("");
+                            foreach (Match i in res)
+                            {
+                                if (i.Groups["tag"].Success)
+                                {
+                                    if (ElementMap.ContainsKey(i.Groups["tag"].Value))
+                                    {
+                                        elem.Name = i.Groups["tag"].Value;
+                                        elem.Type = ElementMap[elem.Name];
+                                    }
+                                    else
+                                        // Unknown tag.
+                                        break;
+                                }
+                                else if (i.Groups["attribute"].Success)
+                                {
+                                    if (i.Groups["name"].Success)
+                                    {
+                                        elem.Attributes[i.Groups["name"].Value] = i.Groups["value"].Success ? SubstituteSpecialChar(i.Groups["value"].Value) : "";
+                                    }
+                                }
+                            }
+                            if (elem.Name == "") elem = null;
+                            break;
+                    }
+                    break;
+                case TokenType.Text :
+                    str = SubstituteSpecialChar(str);
+                    elem = new Element(str, Element.ElementType.Text);
+                    break;
+            }
+            // If it failed to get an element, assume that it is a text.
+            return elem ?? GetElement(TokenType.Text, orig_str);
+        }
+
+        /// <summary>
+        /// Tokenize an html document.
+        /// </summary>
+        /// <param name="HtmlString">A html document string</param>
+        /// <returns>Tokenized html document</returns>
+        public static Document Tokenize(string HtmlString)
+        {
+            if (!Initialized)
+                Init();
+
+            TokenType prevtype = TokenType.Text;
+            Document doc = new Document();
+            TokenType type = TokenType.Text;
+            bool quote = false; //True:" , False:'
+            int sp = 0;
+            for (int pos = 0; pos < HtmlString.Length; ++pos)
+            {
+                switch (HtmlString[pos])
+                {
+                    case '<' :
+                        // If it is in a string, ignore
+                        if (type == TokenType.String) break;
+                        // If it is in a tag, actually previous one is not a tag. so change previous one as Text
+                        if (type == TokenType.Tag)
+                        {
+                            type = TokenType.Text;
+                            --pos;
+                            break;
+                        }
+                        //If it is possible to be a tag, add previous one.
+                        if (pos + 1 != HtmlString.Length && IsTagStartPossibleCharacter(HtmlString[pos + 1]))
+                        {
+                            if (sp <= pos - 1)
+                            {
+                                doc.Items.Add(GetElement(TokenType.Text, HtmlString.Substring(sp, pos - sp)));
+                            }
+
+                            type = TokenType.Tag;
+                            sp = pos;
+                        }
+                        // If it is possible to be an end or special tag, add previous one.
+                        else if (pos + 2 != HtmlString.Length && (HtmlString[pos + 1] == '/' || HtmlString[pos + 1] == '!') && IsTagStartPossibleCharacter(HtmlString[pos + 2]))
+                        {
+                            if (sp <= pos - 1)
+                            {
+                                doc.Items.Add(GetElement(TokenType.Text, HtmlString.Substring(sp, pos - sp)));
+                            }
+
+                            type = TokenType.Tag;
+                            sp = pos;
+                        }
+                        // Otherwise, Process as Text
+                        else
+                        {
+                            type = TokenType.Text;
+                        }
+                        break;
+                    case '>' :
+                        if (type == TokenType.Tag)
+                        {
+                            doc.Items.Add(GetElement(TokenType.Tag, HtmlString.Substring(sp, pos - sp + 1)));
+                            sp = pos + 1;
+                            type = TokenType.Text;
+                        }
+                        break;
+                    case '\'' :
+                    case '"' :
+                        switch ( type ){
+                            case TokenType.String :
+                                if ((quote && HtmlString[pos] == '\'') || (!quote && HtmlString[pos] == '"')) break;
+                                else
+                                    type = prevtype;
+                                break;
+                            case  TokenType.Tag :
+                                prevtype = type;
+                                quote = (HtmlString[pos] == '"');
+                                type = TokenType.String;
+                                break;
+                        }
+                        break;
+                }
+            }
+            if (sp != HtmlString.Length)
+            {
+                doc.Items.Add(GetElement(TokenType.Text, HtmlString.Substring(sp, HtmlString.Length - sp)));
+            }
+
+            return doc;
+        }
+    }
+
+    class HtmlParser
+    {
+        void Init()
+        {
+        }
+    }
+
     public class HtmlReader
     {
         public static Document GetDocument(string html)
