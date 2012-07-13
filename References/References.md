@@ -11,6 +11,8 @@ Libraries
 ---------
 libxml2
     .. http://www.xmlsoft.org
+LispSharp
+    .. http://github.com/forcom/LispSharp
 
 
 Web Sites
