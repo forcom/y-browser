@@ -66,6 +66,7 @@ namespace Core
         /// </summary>
         public enum ElementType
         {
+            Unknown,
             Special,
             Structure,
             Markup,
@@ -90,6 +91,10 @@ namespace Core
         /// Type of the element
         /// </summary>
         public ElementType Type { get; set; }
+        /// <summary>
+        /// Original source code of the element
+        /// </summary>
+        public string Source { get; set; }
 
         /// <summary>
         /// Get or set an attribute value in the element
@@ -117,12 +122,15 @@ namespace Core
         /// An element
         /// </summary>
         /// <param name="name">Element name</param>
+        /// <param name="type">Element type</param>
         /// <param name="starttag">Tag type</param>
-        public Element(string name, ElementType type = ElementType.Structure, bool starttag = true)
+        /// <param name="source">Original source code</param>
+        public Element(string name, ElementType type = ElementType.Structure, bool starttag = true, string source = "")
         {
             Name = name;
             Type = type;
             IsStartTag = starttag;
+            Source = source;
         }
     }
 

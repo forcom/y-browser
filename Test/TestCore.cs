@@ -60,6 +60,7 @@ namespace Test
         //
         #endregion
 
+#if DEBUG
         [TestMethod]
         public void TestHtmlReader()
         {
@@ -255,6 +256,7 @@ to Authors of Internet-Drafts</CITE></A>
 </BODY></HTML>
 ";
             string html3 = @"<!-- <!DOCTYPE HTML><html><head></head></html> -->";
+            var res = HtmlTokenizer.Tokenize(html2);
             HtmlReader.GetDocument(html);
         }
 
@@ -394,5 +396,6 @@ to Authors of Internet-Drafts</CITE></A>
 
             Assert.AreEqual(true, true);
         }
+#endif
     }
 }

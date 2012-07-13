@@ -9,7 +9,11 @@ namespace Core
     /// <summary>
     /// Tokenize a html document
     /// </summary>
+#if DEBUG
+    public class HtmlTokenizer
+#else
     class HtmlTokenizer
+#endif
     {
         enum TokenType
         {
@@ -23,6 +27,7 @@ namespace Core
 
         static Dictionary<string, string> EntityMap = new Dictionary<string, string>();
         static Dictionary<string, Element.ElementType> ElementMap = new Dictionary<string, Element.ElementType>(StringComparer.OrdinalIgnoreCase);
+        static Dictionary<string, HashSet<string>> AttributeMap = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         static Regex MatchEntity = new Regex(@"(?<special>&(?<name>\w+);)|(?<special>&(?<name>\w+))|(?<numeric>&\#(?<code>[0-9]+);)|(?<numeric>&\#(?<code>[0-9]+))");
         static Regex MatchAttribute = new Regex(@"(?<tag>^[a-zA-Z0-9\.\-]*)|(?<attribute>(?<name>\w+)\s*(=\s*(((?<OpenSQ>\')(?<value>[^\']*)(?<CloseSQ-OpenSQ>\'))|((?<OpenDQ>"")(?<value>[^""]*)(?<CloseDQ-OpenDQ>""))|(?<value>[^\'""\s]+)))?)");
@@ -83,6 +88,157 @@ namespace Core
             ElementMap.Add("SELECT", Element.ElementType.Object);
             ElementMap.Add("OPTION", Element.ElementType.Object);
             ElementMap.Add("TEXTAREA", Element.ElementType.Object);
+
+            HashSet<string> set = null;
+
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("HTML", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("HEAD", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("TITLE", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("HREF");
+            AttributeMap.Add("BASE", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("ISINDEX", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("LINK", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("HTTP-EQUIV");
+            set.Add("NAME");
+            set.Add("CONTENT");
+            AttributeMap.Add("META", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("NEXTID", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("BODY", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("H1", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("H2", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("H3", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("H4", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("H5", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("H6", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("P", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("WIDTH");
+            AttributeMap.Add("PRE", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("ADDRESS", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("BLOCKQUOTE", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("UL", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("LI", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("OL", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("DIR", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("MENU", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("COMPACT");
+            AttributeMap.Add("DL", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("DT", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("DD", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("CITE", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("CODE", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("EM", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("KBD", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("SAMP", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("STRONG", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("VAR", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("B", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("I", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("TT", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("HREF");
+            set.Add("NAME");
+            set.Add("TITLE");
+            set.Add("REL");
+            set.Add("REV");
+            set.Add("URN");
+            set.Add("METHODS");
+            AttributeMap.Add("A", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("BR", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AttributeMap.Add("HR", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("ALIGN");
+            set.Add("ALT");
+            set.Add("ISMAP");
+            set.Add("SRC");
+            AttributeMap.Add("IMG", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("ACTION");
+            set.Add("METHOD");
+            set.Add("ENCTYPE");
+            AttributeMap.Add("FORM", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("TYPE");
+            //INPUT TYPE=TEXT
+            //INPUT TYPE=PASSWORD
+            set.Add("NAME");
+            set.Add("MAXLENGTH");
+            set.Add("SIZE");
+            set.Add("VALUE");
+            //INPUT TYPE=CHECKBOX
+            set.Add("NAME");
+            set.Add("VALUE");
+            set.Add("CHECKED");
+            //INPUT TYPE=RADIO
+            set.Add("NAME");
+            set.Add("VALUE");
+            set.Add("CHECKED");
+            //INPUT TYPE=IMAGE
+            set.Add("NAME");
+            set.Add("SRC");
+            set.Add("ALIGN");
+            //INPUT TYPE=HIDDEN
+            set.Add("NAME");
+            set.Add("VALUE");
+            //INPUT TYPE=SUBMIT
+            set.Add("NAME");
+            set.Add("VALUE");
+            //INPUT TYPE=RESET
+            set.Add("VALUE");
+            AttributeMap.Add("INPUT", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("MULTIPLE");
+            set.Add("NAME");
+            set.Add("SIZE");
+            AttributeMap.Add("SELECT", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("SELECTED");
+            set.Add("VALUE");
+            AttributeMap.Add("OPTION", set);
+            set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("COLS");
+            set.Add("NAME");
+            set.Add("ROWS");
+            AttributeMap.Add("TEXTAREA", set);
+
             Initialized = true;
         }
 
@@ -143,7 +299,7 @@ namespace Core
                             {
                                 if (i.Groups["tag"].Success)
                                 {
-                                    elem = new Element(i.Groups["tag"].Value, Element.ElementType.Special);
+                                    elem = new Element(i.Groups["tag"].Value, Element.ElementType.Special, source: orig_str);
                                     elem.Attributes[str.Substring(i.Index + i.Length)] = "";
                                     break;
                                 }
@@ -153,23 +309,20 @@ namespace Core
                             // Remove </ and >
                             str = str.Substring(2, str.Length - 3);
                             res = MatchAttribute.Matches(str);
-                            elem = new Element("", Element.ElementType.Structure, false);
+                            elem = new Element("", Element.ElementType.Unknown, false, orig_str);
                             foreach (Match i in res)
                             {
                                 if (i.Groups["tag"].Success)
                                 {
+                                    elem.Name = i.Groups["tag"].Value;
                                     if (ElementMap.ContainsKey(i.Groups["tag"].Value))
                                     {
-                                        elem.Name = i.Groups["tag"].Value;
                                         elem.Type = ElementMap[elem.Name];
                                     }
-                                    else
-                                        // Unknown tag.
-                                        break;
                                 }
                                 else if (i.Groups["attribute"].Success)
                                 {
-                                    if (i.Groups["name"].Success)
+                                    if (i.Groups["name"].Success && elem.Type != Element.ElementType.Unknown && AttributeMap[elem.Name].Contains(i.Groups["name"].Value))
                                     {
                                         elem.Attributes[i.Groups["name"].Value] = i.Groups["value"].Success ? SubstituteSpecialChar(i.Groups["value"].Value) : "";
                                     }
@@ -181,23 +334,20 @@ namespace Core
                             // Remove < and >
                             str = str.Substring(1, str.Length - 2);
                             res = MatchAttribute.Matches(str);
-                            elem = new Element("");
+                            elem = new Element("", Element.ElementType.Unknown, source: orig_str);
                             foreach (Match i in res)
                             {
                                 if (i.Groups["tag"].Success)
                                 {
+                                    elem.Name = i.Groups["tag"].Value;
                                     if (ElementMap.ContainsKey(i.Groups["tag"].Value))
                                     {
-                                        elem.Name = i.Groups["tag"].Value;
                                         elem.Type = ElementMap[elem.Name];
                                     }
-                                    else
-                                        // Unknown tag.
-                                        break;
                                 }
                                 else if (i.Groups["attribute"].Success)
                                 {
-                                    if (i.Groups["name"].Success)
+                                    if (i.Groups["name"].Success && elem.Type != Element.ElementType.Unknown && AttributeMap[elem.Name].Contains(i.Groups["name"].Value))
                                     {
                                         elem.Attributes[i.Groups["name"].Value] = i.Groups["value"].Success ? SubstituteSpecialChar(i.Groups["value"].Value) : "";
                                     }
@@ -209,11 +359,11 @@ namespace Core
                     break;
                 case TokenType.Text :
                     str = SubstituteSpecialChar(str);
-                    elem = new Element(str, Element.ElementType.Text);
+                    elem = new Element(str, Element.ElementType.Text, source: orig_str);
                     break;
                 case TokenType.Comment :
                     str = str.Substring(4, str.Length - 7);
-                    elem = new Element("--", Element.ElementType.Special);
+                    elem = new Element("--", Element.ElementType.Special, source: orig_str);
                     elem.Attributes[str] = "";
                     break;
             }
