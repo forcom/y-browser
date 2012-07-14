@@ -258,6 +258,7 @@ to Authors of Internet-Drafts</CITE></A>
         public void TestHtmlReader()
         {
             var res = HtmlTokenizer.Tokenize(HtmlCase02);
+            HtmlParser.Init();
             HtmlReader.GetDocument(HtmlCase01);
             Assert.Inconclusive();
         }

@@ -88,7 +88,7 @@ namespace Core
             ElementMap.Add("BR", Element.ElementType.Object);
             ElementMap.Add("HR", Element.ElementType.Object);
             ElementMap.Add("IMG", Element.ElementType.Object);
-            ElementMap.Add("FORM", Element.ElementType.Object);
+            ElementMap.Add("FORM", Element.ElementType.Structure);
             ElementMap.Add("INPUT", Element.ElementType.Object);
             ElementMap.Add("SELECT", Element.ElementType.Object);
             ElementMap.Add("OPTION", Element.ElementType.Object);
@@ -97,6 +97,7 @@ namespace Core
             HashSet<string> set = null;
 
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("VERSION");
             AttributeMap.Add("HTML", set);
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             AttributeMap.Add("HEAD", set);
@@ -108,6 +109,12 @@ namespace Core
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             AttributeMap.Add("ISINDEX", set);
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("HREF");
+            set.Add("TITLE");
+            set.Add("REL");
+            set.Add("REV");
+            set.Add("URN");
+            set.Add("METHODS");
             AttributeMap.Add("LINK", set);
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             set.Add("HTTP-EQUIV");
@@ -115,6 +122,7 @@ namespace Core
             set.Add("CONTENT");
             AttributeMap.Add("META", set);
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            set.Add("N");
             AttributeMap.Add("NEXTID", set);
             set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             AttributeMap.Add("BODY", set);
@@ -502,8 +510,288 @@ namespace Core
 #endif
     class HtmlParser
     {
-        void Init()
+        public class Entity
         {
+            public Element Element { get; set; }
+            List<Entity> _Children = new List<Entity>();
+            public List<Entity> Children { get { return _Children; } }
+
+            public Entity(Element element)
+            {
+                Element = element;
+            }
+
+            public override string ToString()
+            {
+                return Element.ToString();
+            }
+        }
+
+        static void AddToList(List<Entity> Destination, List<Entity> Source)
+        {
+            for (int i = 0; i < Source.Count; ++i)
+            {
+                if (!Destination.Contains(Source[i]))
+                    Destination.Add(Source[i]);
+            }
+        }
+
+        static void AddToChild(List<Entity> Destination, List<Entity> Source)
+        {
+            for (int i = 0; i < Destination.Count; ++i)
+            {
+                AddToList(Destination[i].Children, Source);
+            }
+        }
+
+        static Entity H1 = new Entity(new Element("H1"));
+        static Entity H2 = new Entity(new Element("H2"));
+        static Entity H3 = new Entity(new Element("H3"));
+        static Entity H4 = new Entity(new Element("H4"));
+        static Entity H5 = new Entity(new Element("H5"));
+        static Entity H6 = new Entity(new Element("H6"));
+        static List<Entity> heading = new List<Entity>();
+        static Entity UL = new Entity(new Element("UL"));
+        static Entity OL = new Entity(new Element("OL"));
+        static Entity DIR = new Entity(new Element("DIR"));
+        static Entity MENU = new Entity(new Element("MENU"));
+        static List<Entity> list = new List<Entity>();
+        static Entity CDATA = new Entity(new Element("", Element.ElementType.Text, false));
+        static Entity TT = new Entity(new Element("TT", Element.ElementType.Markup));
+        static Entity B = new Entity(new Element("B", Element.ElementType.Markup));
+        static Entity I = new Entity(new Element("I", Element.ElementType.Markup));
+        static List<Entity> font = new List<Entity>();
+        static Entity EM = new Entity(new Element("EM", Element.ElementType.Markup));
+        static Entity STRONG = new Entity(new Element("STRONG", Element.ElementType.Markup));
+        static Entity CODE = new Entity(new Element("CODE", Element.ElementType.Markup));
+        static Entity SAMP = new Entity(new Element("SAMP", Element.ElementType.Markup));
+        static Entity KBD = new Entity(new Element("KBD", Element.ElementType.Markup));
+        static Entity VAR = new Entity(new Element("VAR", Element.ElementType.Markup));
+        static Entity CITE = new Entity(new Element("CITE", Element.ElementType.Markup));
+        static List<Entity> phrase = new List<Entity>();
+        static Entity A = new Entity(new Element("A", Element.ElementType.Markup));
+        static Entity IMG = new Entity(new Element("IMG", Element.ElementType.Object, false));
+        static Entity BR = new Entity(new Element("BR", Element.ElementType.Object, false));
+        static List<Entity> text = new List<Entity>();
+        static Entity P = new Entity(new Element("P", starttag: false));
+        static Entity HR = new Entity(new Element("HR", Element.ElementType.Object, false));
+        static Entity BLOCKQUOTE = new Entity(new Element("BLOCKQUOTE"));
+        static Entity FORM = new Entity(new Element("FORM"));
+        static Entity ISINDEX = new Entity(new Element("ISINDEX", starttag: false));
+        static List<Entity> block_forms = new List<Entity>();
+        static Entity PRE = new Entity(new Element("PRE"));
+        static List<Entity> preformatted = new List<Entity>();
+        static List<Entity> block = new List<Entity>();
+        static List<Entity> flow = new List<Entity>();
+        static List<Entity> pre_content = new List<Entity>();
+        static Entity DL = new Entity(new Element("DL"));
+        static Entity DT = new Entity(new Element("DT", starttag: false));
+        static Entity DD = new Entity(new Element("DD", starttag: false));
+        static Entity LI = new Entity(new Element("LI", starttag: false));
+        static List<Entity> body_content = new List<Entity>();
+        static Entity BODY = new Entity(new Element("BODY"));
+        static Entity ADDRESS = new Entity(new Element("ADDRESS"));
+        static Entity INPUT = new Entity(new Element("INPUT", Element.ElementType.Object, false));
+        static Entity SELECT = new Entity(new Element("SELECT", Element.ElementType.Object));
+        static Entity TEXTAREA = new Entity(new Element("TEXTAREA", Element.ElementType.Object));
+        static Entity OPTION = new Entity(new Element("OPTION", Element.ElementType.Object, false));
+        static List<Entity> head_extra = new List<Entity>();
+        static List<Entity> head_content = new List<Entity>();
+        static Entity HEAD = new Entity(new Element("HEAD"));
+        static Entity TITLE = new Entity(new Element("TITLE"));
+        static Entity LINK = new Entity(new Element("LINK", starttag: false));
+        static Entity BASE = new Entity(new Element("BASE", starttag: false));
+        static Entity NEXTID = new Entity(new Element("NEXTID", starttag: false));
+        static Entity META = new Entity(new Element("META", starttag: false));
+        static List<Entity> html_content = new List<Entity>();
+        static Entity HTML = new Entity(new Element("HTML"));
+
+        static Dictionary<string, Entity> TagMap = new Dictionary<string, Entity>(StringComparer.OrdinalIgnoreCase);
+
+        static bool Initialized = false;
+
+#if DEBUG
+        public
+#endif
+        static void Init()
+        {
+            heading.Add(H1);
+            heading.Add(H2);
+            heading.Add(H3);
+            heading.Add(H4);
+            heading.Add(H5);
+            heading.Add(H6);
+
+            list.Add(UL);
+            list.Add(OL);
+            list.Add(DIR);
+            list.Add(MENU);
+
+            font.Add(TT);
+            font.Add(B);
+            font.Add(I);
+
+            phrase.Add(EM);
+            phrase.Add(STRONG);
+            phrase.Add(CODE);
+            phrase.Add(SAMP);
+            phrase.Add(KBD);
+            phrase.Add(VAR);
+            phrase.Add(CITE);
+
+            text.Add(CDATA);
+            text.Add(A);
+            text.Add(IMG);
+            text.Add(BR);
+            AddToList(text, font);
+            AddToList(text, phrase);
+
+            AddToChild(font, text);
+            AddToChild(phrase, text);
+
+            AddToList(A.Children, heading);
+            AddToList(A.Children, text);
+            A.Children.Remove(A);
+
+            AddToList(P.Children, text);
+
+            AddToChild(heading, text);
+
+            block_forms.Add(BLOCKQUOTE);
+            block_forms.Add(FORM);
+            block_forms.Add(ISINDEX);
+
+            preformatted.Add(PRE);
+
+            block.Add(P);
+            AddToList(block, list);
+            block.Add(DL);
+            AddToList(block, preformatted);
+            AddToList(block, block_forms);
+
+            AddToList(flow, text);
+            AddToList(flow, block);
+
+            pre_content.Add(CDATA);
+            pre_content.Add(A);
+            pre_content.Add(HR);
+            pre_content.Add(BR);
+
+            AddToList(PRE.Children, pre_content);
+
+            DL.Children.Add(DT);
+            DL.Children.Add(DD);
+
+            AddToList(DT.Children, text);
+
+            AddToList(DD.Children, flow);
+
+            OL.Children.Add(LI);
+            UL.Children.Add(LI);
+
+            DIR.Children.Add(LI);
+            MENU.Children.Add(LI);
+
+            AddToList(LI.Children, flow);
+
+            AddToList(body_content, heading);
+            AddToList(body_content, text);
+            AddToList(body_content, block);
+            body_content.Add(HR);
+            body_content.Add(ADDRESS);
+
+            AddToList(BODY.Children, body_content);
+
+            AddToList(BLOCKQUOTE.Children, body_content);
+
+            AddToList(ADDRESS.Children, text);
+            ADDRESS.Children.Add(P);
+
+            AddToList(FORM.Children, body_content);
+            FORM.Children.Add(INPUT);
+            FORM.Children.Add(SELECT);
+            FORM.Children.Add(TEXTAREA);
+            FORM.Children.Remove(FORM);
+
+            SELECT.Children.Add(OPTION);
+
+            OPTION.Children.Add(CDATA);
+
+            TEXTAREA.Children.Add(CDATA);
+
+            head_extra.Add(NEXTID);
+
+            head_content.Add(TITLE);
+            head_content.Add(ISINDEX);
+            head_content.Add(BASE);
+            AddToList(head_content, head_extra);
+
+            AddToList(HEAD.Children, head_content);
+            HEAD.Children.Add(META);
+            HEAD.Children.Add(LINK);
+
+            TITLE.Children.Add(CDATA);
+
+            html_content.Add(HEAD);
+            html_content.Add(BODY);
+
+            AddToList(HTML.Children, html_content);
+
+            TagMap.Add("CDATA", CDATA);
+            TagMap.Add("H1", H1);
+            TagMap.Add("H2", H2);
+            TagMap.Add("H3", H3);
+            TagMap.Add("H4", H4);
+            TagMap.Add("H5", H5);
+            TagMap.Add("H6", H6);
+            TagMap.Add("UL", UL);
+            TagMap.Add("OL", OL);
+            TagMap.Add("DIR", DIR);
+            TagMap.Add("MENU", MENU);
+            TagMap.Add("TT", TT);
+            TagMap.Add("B", B);
+            TagMap.Add("I", I);
+            TagMap.Add("EM", EM);
+            TagMap.Add("STRONG", STRONG);
+            TagMap.Add("CODE", CODE);
+            TagMap.Add("SAMP", SAMP);
+            TagMap.Add("KBD", KBD);
+            TagMap.Add("VAR", VAR);
+            TagMap.Add("CITE", CITE);
+            TagMap.Add("A", A);
+            TagMap.Add("IMG", IMG);
+            TagMap.Add("BR", BR);
+            TagMap.Add("HR", HR);
+            TagMap.Add("P", P);
+            TagMap.Add("BLOCKQUOTE", BLOCKQUOTE);
+            TagMap.Add("FORM", FORM);
+            TagMap.Add("ISINDEX", ISINDEX);
+            TagMap.Add("PRE", PRE);
+            TagMap.Add("DL", DL);
+            TagMap.Add("DT", DT);
+            TagMap.Add("DD", DD);
+            TagMap.Add("LI", LI);
+            TagMap.Add("ADDRESS", ADDRESS);
+            TagMap.Add("INPUT", INPUT);
+            TagMap.Add("SELECT", SELECT);
+            TagMap.Add("TEXTAREA", TEXTAREA);
+            TagMap.Add("OPTION", OPTION);
+            TagMap.Add("NEXTID", NEXTID);
+            TagMap.Add("TITLE", TITLE);
+            TagMap.Add("BASE", BASE);
+            TagMap.Add("META", META);
+            TagMap.Add("LINK", LINK);
+            TagMap.Add("HEAD", HEAD);
+            TagMap.Add("BODY", BODY);
+            TagMap.Add("HTML", HTML);
+
+            Initialized = true;
+        }
+
+        public static void ParseHtml(string html)
+        {
+            if (!Initialized)
+                Init();
         }
     }
 
