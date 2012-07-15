@@ -505,11 +505,17 @@ namespace Core
         }
     }
 
+    /// <summary>
+    /// Parse a tokenized html document.
+    /// </summary>
 #if DEBUG
     public
 #endif
     class HtmlParser
     {
+        /// <summary>
+        /// Element for structure.
+        /// </summary>
         public class Entity
         {
             public Element Element { get; set; }
@@ -527,6 +533,11 @@ namespace Core
             }
         }
 
+        /// <summary>
+        /// Add all elements into a new list.
+        /// </summary>
+        /// <param name="Destination">A new list</param>
+        /// <param name="Source">Elements</param>
         static void AddToList(List<Entity> Destination, List<Entity> Source)
         {
             for (int i = 0; i < Source.Count; ++i)
@@ -536,6 +547,11 @@ namespace Core
             }
         }
 
+        /// <summary>
+        /// Add all elements as children.
+        /// </summary>
+        /// <param name="Destination">Parent elements</param>
+        /// <param name="Source">Children elements</param>
         static void AddToChild(List<Entity> Destination, List<Entity> Source)
         {
             for (int i = 0; i < Destination.Count; ++i)
@@ -610,6 +626,9 @@ namespace Core
 
         static bool Initialized = false;
 
+        /// <summary>
+        /// Initialize an Element Map.
+        /// </summary>
 #if DEBUG
         public
 #endif
@@ -682,6 +701,10 @@ namespace Core
             DL.Children.Add(DT);
             DL.Children.Add(DD);
 
+            // ...=_=;;...
+            AddToList(DL.Children, flow);
+            // ...T_T...
+
             AddToList(DT.Children, text);
 
             AddToList(DD.Children, flow);
@@ -691,6 +714,13 @@ namespace Core
 
             DIR.Children.Add(LI);
             MENU.Children.Add(LI);
+
+            // ...=_=;;...
+            AddToList(OL.Children, flow);
+            AddToList(UL.Children, flow);
+            AddToList(DIR.Children, flow);
+            AddToList(MENU.Children, flow);
+            // ...T_T...
 
             AddToList(LI.Children, flow);
 
@@ -714,6 +744,9 @@ namespace Core
             FORM.Children.Remove(FORM);
 
             SELECT.Children.Add(OPTION);
+            // ...=_=;;...
+            SELECT.Children.Add(CDATA);
+            // ...T_T...
 
             OPTION.Children.Add(CDATA);
 
@@ -788,19 +821,175 @@ namespace Core
             Initialized = true;
         }
 
-        public static void ParseHtml(string html)
+        /// <summary>
+        /// Check an element can be a child.
+        /// </summary>
+        /// <param name="list">Parent elements</param>
+        /// <param name="elem">An element to check</param>
+        /// <returns>Return true if can be a child, otherwise false.</returns>
+        static bool CheckCanExist(List<Entity> list, Element elem)
         {
+            bool flag = true;
+            foreach (var i in list)
+            {
+                switch (elem.Type)
+                {
+                    case Element.ElementType.Markup:
+                    case Element.ElementType.Object:
+                    case Element.ElementType.Structure:
+                        if (!i.Children.Contains(TagMap[elem.Name]))
+                        {
+                            flag = false;
+                            return false;
+                        }
+                        break;
+                    case Element.ElementType.Text:
+                    case Element.ElementType.Unknown:
+                        if (!i.Children.Contains(CDATA))
+                        {
+                            flag = false;
+                            return false;
+                        }
+                        break;
+                    case Element.ElementType.Special:
+                        flag = false;
+                        return false;
+                }
+            }
+            return flag;
+        }
+
+        /// <summary>
+        /// Parse a tokenized html document.
+        /// </summary>
+        /// <param name="html">A tokenized html document</param>
+        /// <returns>Parsed html document</returns>
+        public static Document ParseHtml(Document html)
+        {
+            Document doc = new Document();
             if (!Initialized)
                 Init();
+
+            Stack<Element> stk = new Stack<Element>();
+            List<Entity> markup = new List<Entity>();
+            Element top = null;
+
+            foreach (Element i in html.Items)
+            {
+                top = stk.Count > 0 ? stk.Peek() : null;
+                switch (i.Type)
+                {
+                    case Element.ElementType.Special:
+                        break;
+                    case Element.ElementType.Structure:
+                        if (i.IsStartTag)
+                        {
+                            if (top != null && !TagMap[top.Name].Children.Contains(TagMap[i.Name]))
+                                break;
+
+                            if (TagMap[i.Name].Element.IsStartTag)
+                                stk.Push(i);
+                            doc.Items.Add(i);
+                        }
+                        else
+                        {
+                            if (!TagMap[i.Name].Element.IsStartTag)
+                                break;
+
+                            if (top != null && top.Name == i.Name)
+                            {
+                                stk.Pop();
+                                doc.Items.Add(i);
+                            }
+                        }
+                        break;
+                    case Element.ElementType.Markup:
+                        if (i.IsStartTag)
+                        {
+                            if (top != null && !TagMap[top.Name].Children.Contains(TagMap[i.Name]))
+                                break;
+
+                            if (CheckCanExist(markup, i))
+                            {
+                                markup.Add(TagMap[i.Name]);
+                                doc.Items.Add(i);
+                            }
+                        }
+                        else
+                        {
+                            if (markup.Contains(TagMap[i.Name]))
+                            {
+                                markup.Reverse();
+                                markup.Remove(TagMap[i.Name]);
+                                markup.Reverse();
+                                doc.Items.Add(i);
+                            }
+                        }
+                        break;
+                    case Element.ElementType.Object:
+                        if (top != null && !TagMap[top.Name].Children.Contains(TagMap[i.Name]))
+                            break;
+                        doc.Items.Add(i);
+                        break;
+                    case Element.ElementType.Text:
+                    case Element.ElementType.Unknown:
+                        if (top != null && !TagMap[top.Name].Children.Contains(CDATA))
+                            break;
+                        doc.Items.Add(i);
+                        break;
+                }
+            }
+
+            //Auto Recovery for unmarked elements =_=;;
+            markup.Reverse();
+            foreach (var i in markup)
+            {
+                doc.Items.Add(new Element(i.Element.Name, Element.ElementType.Markup, false));
+            }
+
+            while (stk.Count != 0)
+            {
+                Element i = stk.Pop();
+                doc.Items.Add(new Element(i.Name, i.Type, false));
+            }
+
+            return doc;
         }
     }
 
+    /// <summary>
+    /// Get a html document from a html string.
+    /// </summary>
     public class HtmlReader
     {
+        /// <summary>
+        /// Get a html document from a html string.
+        /// </summary>
+        /// <param name="html">A html string</param>
+        /// <returns>A html document</returns>
         public static Document GetDocument(string html)
         {
-            Document doc = new Document();
-            return doc;
+            return HtmlParser.ParseHtml(HtmlTokenizer.Tokenize(html));
+        }
+
+        /// <summary>
+        /// Get a html document from a url.
+        /// </summary>
+        /// <param name="url">A url to get a html string</param>
+        /// <returns>A html document if the work was completed successfully, otherwise null</returns>
+        public static Document GetDocumentFromURL(string url)
+        {
+            System.Net.WebClient wc = new System.Net.WebClient();
+            string html = null;
+            try
+            {
+                html = wc.DownloadString(url);
+            }
+            catch (Exception e)
+            {
+                html = null;
+            }
+            return html != null ? HtmlParser.ParseHtml(HtmlTokenizer.Tokenize(html)) : null;
         }
     }
 }

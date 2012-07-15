@@ -257,10 +257,11 @@ to Authors of Internet-Drafts</CITE></A>
         [TestMethod]
         public void TestHtmlReader()
         {
-            var res = HtmlTokenizer.Tokenize(HtmlCase02);
-            HtmlParser.Init();
-            HtmlReader.GetDocument(HtmlCase01);
-            Assert.Inconclusive();
+            var res1 = HtmlReader.GetDocument(HtmlCase01);
+            var res2 = HtmlReader.GetDocument(HtmlCase02);
+            var res3 = HtmlReader.GetDocument(HtmlCase03);
+            var res4 = HtmlReader.GetDocumentFromURL("http://www.w3.org/MarkUp/html-spec/");
+            Assert.AreEqual(true, true);
         }
 
         [TestMethod]
