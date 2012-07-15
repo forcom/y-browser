@@ -932,10 +932,11 @@ namespace Core
                         doc.Items.Add(i);
                         break;
                     case Element.ElementType.Text:
-                    case Element.ElementType.Unknown:
                         if (top != null && !TagMap[top.Name].Children.Contains(CDATA))
                             break;
                         doc.Items.Add(i);
+                        break;
+                    case Element.ElementType.Unknown:
                         break;
                 }
             }
@@ -985,7 +986,7 @@ namespace Core
             {
                 html = wc.DownloadString(url);
             }
-            catch (Exception e)
+            catch
             {
                 html = null;
             }
