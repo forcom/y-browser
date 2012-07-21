@@ -36,14 +36,129 @@ namespace YWebView
 
         void ShowPage()
         {
+            bool setTitle = false;
+            int indent = 0;
+            Stack<int> ListType = new Stack<int>();
+
             curDoc = np.CurrentPage;
+            StringBuilder sb = new StringBuilder();
+            foreach (var i in curDoc.Items)
+            {
+                switch (i.Type)
+                {
+                    case Element.ElementType.Unknown:
+                        break;
+                    case Element.ElementType.Special:
+                        break;
+                    case Element.ElementType.Structure:
+                        switch (i.Name.ToUpper())
+                        {
+                            case "TITLE":
+                                setTitle = i.IsStartTag;
+                                break;
+                            case "H1":
+                                break;
+                            case "H2":
+                                break;
+                            case "H3":
+                                break;
+                            case "H4":
+                                break;
+                            case "H5":
+                                break;
+                            case "H6":
+                                break;
+                            case "P":
+                                break;
+                            case "PRE":
+                                break;
+                            case "ADDRESS":
+                                break;
+                            case "BLOCKQUOTE":
+                                break;
+                            case "UL":
+                                break;
+                            case "LI":
+                                break;
+                            case "OL":
+                                break;
+                            case "DIR":
+                                break;
+                            case "MENU":
+                                break;
+                            case "DL":
+                                break;
+                            case "DT":
+                                break;
+                            case "DD":
+                                break;
+                            case "FORM":
+                                break;
+                        }
+                        break;
+                    case Element.ElementType.Markup:
+                        switch (i.Name.ToUpper())
+                        {
+                            case "CITE":
+                                break;
+                            case "CODE":
+                                break;
+                            case "EM":
+                                break;
+                            case "KBD":
+                                break;
+                            case "SAMP":
+                                break;
+                            case "STRONG":
+                                break;
+                            case "VAR":
+                                break;
+                            case "B":
+                                break;
+                            case "I":
+                                break;
+                            case "TT":
+                                break;
+                            case "A":
+                                break;
+                        }
+                        break;
+                    case Element.ElementType.Object:
+                        switch (i.Name.ToUpper())
+                        {
+                            case "IMG":
+                                break;
+                            case "BR":
+                                break;
+                            case "HR":
+                                break;
+                            case "INPUT":
+                                break;
+                            case "SELECT":
+                                break;
+                            case "OPTION":
+                                break;
+                            case "TEXTAREA":
+                                break;
+                        }
+                        break;
+                    case Element.ElementType.Text:
+                        if (setTitle)
+                        {
+                            Title = i.Name;
+                            break;
+                        }
+                        Page.AppendText(i.Name);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         private void tmrShowPage_Tick(object sender, EventArgs e)
         {
             if (tmrNavigate.Enabled) return;
-            /*Thread thr = new Thread(new ThreadStart(ShowPage));
-            thr.Start();*/
             tmrShowPage.Enabled = false;
             ShowPage();
         }
