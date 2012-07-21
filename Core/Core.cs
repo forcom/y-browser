@@ -47,7 +47,7 @@ namespace Core
         {
             get
             {
-                return _Items[name] != null ? _Items[name].Value : null;
+                return _Items.ContainsKey(name) ? _Items[name].Value : null;
             }
             set
             {
@@ -131,6 +131,14 @@ namespace Core
             Type = type;
             IsStartTag = starttag;
             Source = source;
+        }
+
+        protected Element()
+        {
+            Name = "";
+            Type = ElementType.Unknown;
+            IsStartTag = true;
+            Source = "";
         }
     }
 
