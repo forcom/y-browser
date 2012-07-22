@@ -53,7 +53,6 @@ namespace Core
 #endif
  static string SubstituteSpecialChar(string str)
         {
-            var res = MatchEntity.Matches(str);
             str = MatchEntity.Replace(str, new MatchEvaluator(x =>
             {
                 if (x.Groups["special"].Success)
@@ -337,7 +336,8 @@ namespace Core
             HtmlTag.Initialize();
 
             Stack<Element> stk = new Stack<Element>();
-            List<HtmlTag.Entity> markup = new List<HtmlTag.Entity>();
+            //List<HtmlTag.Entity> markup = new List<HtmlTag.Entity>();
+            Stack<HtmlTag.Entity> markup = new Stack<HtmlTag.Entity>();
             Element top = null;
 
             foreach (Element i in html.Items)
@@ -375,19 +375,26 @@ namespace Core
                             if (top != null && !HtmlTag.TagMap[top.Name].Children.Contains(HtmlTag.TagMap[i.Name]))
                                 break;
 
-                            if (CheckCanExist(markup, i))
+                            /*if (CheckCanExist(markup, i))
                             {
                                 markup.Add(HtmlTag.TagMap[i.Name]);
                                 doc.Items.Add(i);
-                            }
+                            }*/
+                            markup.Push(HtmlTag.TagMap[i.Name]);
+                            doc.Items.Add(i);
                         }
                         else
                         {
-                            if (markup.Contains(HtmlTag.TagMap[i.Name]))
+                            /*if (markup.Contains(HtmlTag.TagMap[i.Name]))
                             {
                                 markup.Reverse();
                                 markup.Remove(HtmlTag.TagMap[i.Name]);
                                 markup.Reverse();
+                                doc.Items.Add(i);
+                            }*/
+                            if (markup.Peek() == HtmlTag.TagMap[i.Name])
+                            {
+                                markup.Pop();
                                 doc.Items.Add(i);
                             }
                         }
@@ -408,8 +415,12 @@ namespace Core
             }
 
             //Auto Recovery for unmarked elements =_=;;
-            markup.Reverse();
+            /*markup.Reverse();
             foreach (var i in markup)
+            {
+                doc.Items.Add(new Element(i.Name, Element.ElementType.Markup, false));
+            }*/
+            for (var i = markup.Peek(); markup.Count > 0; markup.Pop(), i = markup.Peek())
             {
                 doc.Items.Add(new Element(i.Name, Element.ElementType.Markup, false));
             }
