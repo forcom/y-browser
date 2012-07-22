@@ -25,6 +25,7 @@ namespace YWebView
             public HyperlinkInformation()
             {
                 Location = new Region();
+                Location.MakeEmpty();
                 Name = null;
                 Href = null;
                 Title = null;
@@ -39,6 +40,7 @@ namespace YWebView
         }
 
         public string Title { get; set; }
+        public string StatusText { get; set; }
         public List<HyperlinkInformation> Hyperlinks { get; set; }
 
         NetProcess np = new NetProcess();
@@ -51,6 +53,7 @@ namespace YWebView
             InitializeComponent();
             Title = "";
             tmrNavigate.Tick += new EventHandler(np.tmrNavigate_Tick);
+            Hyperlinks = new List<HyperlinkInformation>();
         }
 
         public void Navigate(string Url)
@@ -269,7 +272,14 @@ namespace YWebView
                             case "IMG":
                                 if (i["SRC"] == null)
                                     break;
-                                Showing.DrawImage(np.DownloadImage(i["SRC"]));
+                                Region rg = Showing.DrawImage(np.DownloadImage(i["SRC"]));
+                                if (i["ALT"] != null)
+                                {
+                                    HyperlinkInformation hi = new HyperlinkInformation();
+                                    hi.Location = rg;
+                                    hi.Title = i["ALT"];
+                                    _hyperlink.Add(hi);
+                                }
                                 break;
                             case "BR":
                                 Showing.DrawNewLine();
@@ -310,6 +320,7 @@ namespace YWebView
             }
 
             Page.Image = Showing.Page;
+            Hyperlinks = _hyperlink;
         }
 
         private void tmrShowPage_Tick(object sender, EventArgs e)
@@ -324,8 +335,44 @@ namespace YWebView
             Navigate("http://www.w3.org/MarkUp/html-spec/");
         }
 
-        private void YWebView_Paint(object sender, PaintEventArgs e)
+        private void Page_MouseMove(object sender, MouseEventArgs e)
         {
+            bool flag = false;
+            foreach (var i in Hyperlinks)
+            {
+                if (i.Location != null && i.Location.IsVisible(e.Location))
+                {
+                    flag = true;
+                    if (i.Title != null)
+                    {
+                        toolTip.SetToolTip(Page, i.Title);
+                    }
+                    if (i.Href != null)
+                    {
+                        StatusText = np.GetUrl(i.Href);
+                        Page.Cursor = Cursors.Hand;
+                    }
+                }
+            }
+            if (!flag)
+            {
+                StatusText = "";
+                Page.Cursor = Cursors.Default;
+            }
+        }
+
+        private void Page_MouseClick(object sender, MouseEventArgs e)
+        {
+            foreach (var i in Hyperlinks)
+            {
+                if (i.Location != null && i.Location.IsVisible(e.Location))
+                {
+                    if (i.Href != null)
+                    {
+                        Navigate(np.GetUrl(i.Href));
+                    }
+                }
+            }
         }
     }
 }

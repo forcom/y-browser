@@ -33,7 +33,7 @@
             this.tmrShowPage = new System.Windows.Forms.Timer(this.components);
             this.Page = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
-            this.lblLocation = new System.Windows.Forms.Label();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.Page)).BeginInit();
             this.SuspendLayout();
             // 
@@ -51,6 +51,8 @@
             this.Page.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.Page.TabIndex = 0;
             this.Page.TabStop = false;
+            this.Page.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Page_MouseClick);
+            this.Page.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Page_MouseMove);
             // 
             // button1
             // 
@@ -62,28 +64,17 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // lblLocation
-            // 
-            this.lblLocation.AutoSize = true;
-            this.lblLocation.Location = new System.Drawing.Point(70, 431);
-            this.lblLocation.Name = "lblLocation";
-            this.lblLocation.Size = new System.Drawing.Size(35, 12);
-            this.lblLocation.TabIndex = 2;
-            this.lblLocation.Text = "label1";
-            // 
             // YWebView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.BackColor = System.Drawing.Color.White;
-            this.Controls.Add(this.lblLocation);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.Page);
             this.ForeColor = System.Drawing.Color.Black;
             this.Name = "YWebView";
             this.Size = new System.Drawing.Size(800, 600);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.YWebView_Paint);
             ((System.ComponentModel.ISupportInitialize)(this.Page)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -96,7 +87,7 @@
         private System.Windows.Forms.Timer tmrShowPage;
         private System.Windows.Forms.PictureBox Page;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Label lblLocation;
+        private System.Windows.Forms.ToolTip toolTip;
 
 
     }

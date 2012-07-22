@@ -195,6 +195,8 @@ namespace YWebView
         public Region DrawImage(Image image)
         {
             Region rg = new Region();
+            RectangleF rc = new RectangleF();
+            rg.MakeEmpty();
             Graphics g = Graphics.FromImage(Page);
             
             if (XPosition + image.Width >= Page.Width)
@@ -211,7 +213,9 @@ namespace YWebView
 
             g.DrawImage(image, XPosition, YPosition);
 
-            rg.Union(new RectangleF(XPosition, YPosition, image.Width, image.Height));
+            rc = new RectangleF(XPosition, YPosition, image.Width, image.Height);
+            DrawArea.Add(rc);
+            rg.Union(rc);
 
             XPosition = LeftMargin + IndentLevel * IndentSize;
             YPosition += image.Height;
@@ -356,6 +360,7 @@ namespace YWebView
                 return null;
 
             Region rg = new Region();
+            rg.MakeEmpty();
             for (int i = s; i < DrawArea.Count; ++i)
             {
                 rg.Union(DrawArea[i]);
