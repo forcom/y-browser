@@ -420,8 +420,9 @@ namespace Core
             {
                 doc.Items.Add(new Element(i.Name, Element.ElementType.Markup, false));
             }*/
-            for (var i = markup.Peek(); markup.Count > 0; markup.Pop(), i = markup.Peek())
+            while (markup.Count != 0)
             {
+                Element i = markup.Pop();
                 doc.Items.Add(new Element(i.Name, Element.ElementType.Markup, false));
             }
 
