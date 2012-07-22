@@ -130,6 +130,21 @@ namespace YWebView
             return img;
         }
 
+        public string GetUrl(string url)
+        {
+            Uri _url = null;
+            try
+            {
+                _url = new Uri(workingUrl, url);
+            }
+            catch
+            {
+                return null;
+            }
+
+            return _url.OriginalString;
+        }
+
         public void tmrNavigate_Tick(object sender, EventArgs e)
         {
             if (workingdownload == false)
