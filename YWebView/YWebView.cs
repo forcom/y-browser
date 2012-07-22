@@ -20,6 +20,8 @@ namespace YWebView
         NetProcess np = new NetProcess();
         Document curDoc = null;
 
+        System.Text.RegularExpressions.Regex Whitespace = new System.Text.RegularExpressions.Regex(@"\s+");
+
         public YWebView()
         {
             InitializeComponent();
@@ -37,8 +39,9 @@ namespace YWebView
         void ShowPage()
         {
             bool setTitle = false;
-            int indent = 0;
-            Stack<int> ListType = new Stack<int>();
+            bool isPRE = false;
+
+            DrawPage Showing = new DrawPage();
 
             curDoc = np.CurrentPage;
             StringBuilder sb = new StringBuilder();
@@ -71,6 +74,7 @@ namespace YWebView
                             case "P":
                                 break;
                             case "PRE":
+                                isPRE = i.IsStartTag;
                                 break;
                             case "ADDRESS":
                                 break;
@@ -148,12 +152,19 @@ namespace YWebView
                             Title = i.Name;
                             break;
                         }
-                        Page.AppendText(i.Name);
+                        string text = i.Name;
+                        if (!isPRE)
+                        {
+                            text = Whitespace.Replace(text, " ");
+                        }
+                        Showing.DrawText(text);
                         break;
                     default:
                         break;
                 }
             }
+
+            Page.Image = Showing.Page;
         }
 
         private void tmrShowPage_Tick(object sender, EventArgs e)
@@ -166,6 +177,10 @@ namespace YWebView
         private void button1_Click(object sender, EventArgs e)
         {
             Navigate("http://www.w3.org/MarkUp/html-spec/");
+        }
+
+        private void YWebView_Paint(object sender, PaintEventArgs e)
+        {
         }
     }
 }
