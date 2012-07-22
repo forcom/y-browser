@@ -45,10 +45,22 @@ namespace YWebView
 
         public void IncreaseHeight(int deltaHeight = 300)
         {
+            Bitmap bmp = new Bitmap(Page.Width, Page.Height + deltaHeight);
+            Graphics g = Graphics.FromImage(bmp);
+            g.DrawImage(Page, new Point(0, 0));
+            g.Flush();
+            Page.Dispose();
+            Page = bmp;
         }
 
         public void IncreaseWidth(int deltaWidth)
         {
+            Bitmap bmp = new Bitmap(Page.Width + deltaWidth, Page.Height);
+            Graphics g = Graphics.FromImage(bmp);
+            g.DrawImage(Page, new Point(0, 0));
+            g.Flush();
+            Page.Dispose();
+            Page = bmp;
         }
 
         public Region DrawText(string text)
