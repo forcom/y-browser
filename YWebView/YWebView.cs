@@ -15,7 +15,31 @@ namespace YWebView
 {
     public partial class YWebView : UserControl
     {
+        public class HyperlinkInformation
+        {
+            public Region Location { get; set; }
+            public string Name { get; set; }
+            public string Href { get; set; }
+            public string Title { get; set; }
+
+            public HyperlinkInformation()
+            {
+                Location = new Region();
+                Name = null;
+                Href = null;
+                Title = null;
+            }
+
+            public HyperlinkInformation(Element elem)
+            {
+                Href = elem["HREF"];
+                Name = elem["NAME"];
+                Title = elem["TITLE"];
+            }
+        }
+
         public string Title { get; set; }
+        public List<HyperlinkInformation> Hyperlinks { get; set; }
 
         NetProcess np = new NetProcess();
         Document curDoc = null;
@@ -38,8 +62,12 @@ namespace YWebView
 
         void ShowPage()
         {
+            List<HyperlinkInformation> _hyperlink = new List<HyperlinkInformation>();
+
             bool setTitle = false;
             bool isPRE = false;
+
+            HyperlinkInformation curlink = null;
 
             DrawPage Showing = new DrawPage();
 
@@ -60,29 +88,85 @@ namespace YWebView
                                 setTitle = i.IsStartTag;
                                 break;
                             case "H1":
+                                if (i.IsStartTag)
+                                    Showing.BeginHeader(1);
+                                else
+                                    Showing.EndHeader();
                                 break;
                             case "H2":
+                                if (i.IsStartTag)
+                                    Showing.BeginHeader(2);
+                                else
+                                    Showing.EndHeader();
                                 break;
                             case "H3":
+                                if (i.IsStartTag)
+                                    Showing.BeginHeader(3);
+                                else
+                                    Showing.EndHeader();
                                 break;
                             case "H4":
+                                if (i.IsStartTag)
+                                    Showing.BeginHeader(4);
+                                else
+                                    Showing.EndHeader();
                                 break;
                             case "H5":
+                                if (i.IsStartTag)
+                                    Showing.BeginHeader(5);
+                                else
+                                    Showing.EndHeader();
                                 break;
                             case "H6":
+                                if (i.IsStartTag)
+                                    Showing.BeginHeader(6);
+                                else
+                                    Showing.EndHeader();
                                 break;
                             case "P":
+                                Showing.DrawNewParagraph();
                                 break;
                             case "PRE":
                                 isPRE = i.IsStartTag;
+                                if (isPRE)
+                                {
+                                    Showing.DrawNewParagraph();
+                                }
                                 break;
                             case "ADDRESS":
+                                if (i.IsStartTag)
+                                {
+                                    Showing.DrawNewParagraph();
+                                    ++Showing.IndentLevel;
+                                    Showing.BeginMarkup(FontStyle.Italic);
+                                }
+                                else
+                                {
+                                    --Showing.IndentLevel;
+                                    Showing.EndMarkup();
+                                    Showing.DrawNewParagraph();
+                                }
                                 break;
                             case "BLOCKQUOTE":
+                                if (i.IsStartTag)
+                                {
+                                    Showing.DrawNewParagraph();
+                                    ++Showing.IndentLevel;
+                                    Showing.BeginMarkup(FontStyle.Italic);
+                                    Showing.DrawText(">>\"");
+                                }
+                                else
+                                {
+                                    Showing.DrawText("\"<<");
+                                    --Showing.IndentLevel;
+                                    Showing.EndMarkup();
+                                    Showing.DrawNewParagraph();
+                                }
                                 break;
                             case "UL":
                                 break;
                             case "LI":
+                                Showing.DrawNewLine();
                                 break;
                             case "OL":
                                 break;
@@ -93,8 +177,10 @@ namespace YWebView
                             case "DL":
                                 break;
                             case "DT":
+                                Showing.DrawNewLine();
                                 break;
                             case "DD":
+                                Showing.DrawNewLine();
                                 break;
                             case "FORM":
                                 break;
@@ -104,26 +190,76 @@ namespace YWebView
                         switch (i.Name.ToUpper())
                         {
                             case "CITE":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Italic);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "CODE":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Regular, true);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "EM":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Bold | FontStyle.Italic);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "KBD":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Regular, true);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "SAMP":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Regular, true);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "STRONG":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Bold);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "VAR":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Italic);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "B":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Bold);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "I":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Italic);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "TT":
+                                if (i.IsStartTag)
+                                    Showing.BeginMarkup(FontStyle.Regular, true);
+                                else
+                                    Showing.EndMarkup();
                                 break;
                             case "A":
+                                if (i.IsStartTag)
+                                {
+                                    curlink = new HyperlinkInformation(i);
+                                    Showing.BeginHyperlink();
+                                }
+                                else
+                                {
+                                    curlink.Location = Showing.EndHyperlink();
+                                    _hyperlink.Add(curlink);
+                                }
                                 break;
                         }
                         break;
@@ -131,10 +267,15 @@ namespace YWebView
                         switch (i.Name.ToUpper())
                         {
                             case "IMG":
+                                if (i["SRC"] == null)
+                                    break;
+                                Showing.DrawImage(np.DownloadImage(i["SRC"]));
                                 break;
                             case "BR":
+                                Showing.DrawNewLine();
                                 break;
                             case "HR":
+                                Showing.DrawHorizontalLine();
                                 break;
                             case "INPUT":
                                 break;
@@ -156,8 +297,12 @@ namespace YWebView
                         if (!isPRE)
                         {
                             text = Whitespace.Replace(text, " ");
+                            Showing.DrawText(text);
                         }
-                        Showing.DrawText(text);
+                        else
+                        {
+                            Showing.DrawRawText(text);
+                        }
                         break;
                     default:
                         break;

@@ -94,7 +94,11 @@ namespace YWebView
                         YPosition += head.Height;
 
                         if (YPosition >= Page.Height)
+                        {
+                            g.Flush();
                             IncreaseHeight();
+                            g = Graphics.FromImage(Page);
+                        }
 
                         XPosition = LeftMargin + IndentLevel * IndentSize;
                         continue;
@@ -113,7 +117,11 @@ namespace YWebView
                     }
 
                     if (YPosition + tail.Height >= Page.Height)
+                    {
+                        g.Flush();
                         IncreaseHeight();
+                        g = Graphics.FromImage(Page);
+                    }
 
                     g.DrawString(text.Substring(0, tp + 1), fnt, brush, XPosition, YPosition);
                     DrawArea.Add(new RectangleF(XPosition, YPosition, tail.Width, tail.Height));
@@ -125,7 +133,11 @@ namespace YWebView
                         YPosition += tail.Height;
 
                         if (YPosition >= Page.Height)
+                        {
+                            g.Flush();
                             IncreaseHeight();
+                            g = Graphics.FromImage(Page);
+                        }
                     }
                     else
                     {
@@ -136,23 +148,109 @@ namespace YWebView
                     break;
                 }
             }
+            g.Flush();
+        }
+
+        public void DrawRawText(string text)
+        {
+            Graphics g = Graphics.FromImage(Page);
+
+            Font fnt = DrawFont.Peek();
+            Brush brush = DrawBrush.Peek();
+
+            string[] lines = text.Split(new char[] { '\n', '\r' });
+
+            SizeF size = new SizeF();
+
+            foreach (var i in lines)
+            {
+                size = g.MeasureString(i, fnt);
+                XPosition = LeftMargin + IndentLevel * IndentSize;
+
+                if (LeftMargin + size.Width >= Page.Width - RightMargin)
+                {
+                    g.Flush();
+                    IncreaseWidth((int)(LeftMargin + size.Width - Page.Width + RightMargin));
+                    g = Graphics.FromImage(Page);
+                }
+
+                if (YPosition + size.Height >= Page.Height)
+                {
+                    g.Flush();
+                    IncreaseHeight();
+                    g = Graphics.FromImage(Page);
+                }
+
+                g.DrawString(i, fnt, brush, XPosition, YPosition);
+
+                XPosition += size.Width;
+                YPosition += size.Height;
+            }
+
+            if (!size.IsEmpty)
+                YPosition -= size.Height;
+            g.Flush();
         }
 
         public Region DrawImage(Image image)
         {
-            return null;
+            Region rg = new Region();
+            Graphics g = Graphics.FromImage(Page);
+            
+            if (XPosition + image.Width >= Page.Width)
+            {
+                IncreaseWidth((int)(XPosition + image.Width - Page.Width + RightMargin));
+                g = Graphics.FromImage(Page);
+            }
+
+            if (YPosition + image.Height >= Page.Height)
+            {
+                IncreaseHeight((int)(YPosition + image.Height - Page.Height + 300));
+                g = Graphics.FromImage(Page);
+            }
+
+            g.DrawImage(image, XPosition, YPosition);
+
+            rg.Union(new RectangleF(XPosition, YPosition, image.Width, image.Height));
+
+            XPosition = LeftMargin + IndentLevel * IndentSize;
+            YPosition += image.Height;
+
+            g.Flush();
+
+            return rg;
         }
 
         public void DrawNewLine()
         {
+            Graphics g = Graphics.FromImage(Page);
+            var size = g.MeasureString(" ", DrawFont.Peek());
+            YPosition += size.Height;
+            XPosition = LeftMargin + IndentLevel * IndentSize;
         }
 
         public void DrawHorizontalLine()
         {
+            Graphics g = Graphics.FromImage(Page);
+            var size = g.MeasureString(" ", DrawFont.Peek());
+            if (YPosition + size.Height + 10 >= Page.Height)
+            {
+                IncreaseHeight();
+                g = Graphics.FromImage(Page);
+            }
+            YPosition += size.Height;
+            XPosition = LeftMargin + IndentLevel * IndentSize;
+            g.DrawLine(new Pen(Color.Black, 3.0f), XPosition, YPosition, Page.Width - RightMargin, YPosition);
+            g.Flush();
+            YPosition += 6;
         }
 
         public void DrawNewParagraph()
         {
+            Graphics g = Graphics.FromImage(Page);
+            var size = g.MeasureString(" ", DrawFont.Peek());
+            YPosition += size.Height;
+            XPosition = LeftMargin + IndentLevel * IndentSize;
         }
 
         public Region DrawFormField()
@@ -160,12 +258,22 @@ namespace YWebView
             return null;
         }
 
-        public void DrawHeader(int level, bool start = true)
+        public void DrawList()
         {
         }
 
-        public void DrawList()
+        public void BeginHeader(int level)
         {
+            Font prev = DrawFont.Peek();
+            Font fnt = new Font(prev.FontFamily, 23 - level * 2, prev.Style | FontStyle.Bold);
+            DrawFont.Push(fnt);
+            DrawNewLine();
+        }
+
+        public void EndHeader()
+        {
+            DrawNewParagraph();
+            DrawFont.Pop();
         }
 
         public void BeginUnorderedList()
@@ -208,13 +316,51 @@ namespace YWebView
         {
         }
 
-        public void BeginMarkup()
+        public void BeginMarkup(FontStyle style, bool monospace = false)
         {
+            Font prev = DrawFont.Peek();
+            Font fnt = null;
+            if (!monospace)
+            {
+                fnt = new Font(prev, prev.Style | style);
+            }
+            else
+            {
+                fnt = new Font("ＭＳ ゴシック", prev.Size, prev.Style | style);
+            }
+            DrawFont.Push(fnt);
         }
 
-        public Region EndMarkup()
+        public void EndMarkup()
         {
-            return null;
+            DrawFont.Pop();
+        }
+
+        public void BeginHyperlink()
+        {
+            Font prev = DrawFont.Peek();
+            Font fnt = new Font(prev, prev.Style | FontStyle.Underline);
+            DrawFont.Push(fnt);
+            DrawBrush.Push(Brushes.Blue);
+            MarkupRegion.Push(DrawArea.Count);
+        }
+
+        public Region EndHyperlink()
+        {
+            DrawFont.Pop();
+            DrawBrush.Pop();
+
+            int s = MarkupRegion.Pop();
+
+            if (DrawArea.Count - s == 0)
+                return null;
+
+            Region rg = new Region();
+            for (int i = s; i < DrawArea.Count; ++i)
+            {
+                rg.Union(DrawArea[i]);
+            }
+            return rg;
         }
     }
 }
