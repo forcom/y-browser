@@ -167,23 +167,43 @@ namespace YWebView
                                 }
                                 break;
                             case "UL":
+                                if (i.IsStartTag)
+                                    Showing.BeginUnorderedList();
+                                else
+                                    Showing.EndUnorderedList();
                                 break;
                             case "LI":
-                                Showing.DrawNewLine();
+                                Showing.DrawList();
                                 break;
                             case "OL":
+                                if (i.IsStartTag)
+                                    Showing.BeginOrderedList();
+                                else
+                                    Showing.EndOrderedList();
                                 break;
                             case "DIR":
+                                if (i.IsStartTag)
+                                    Showing.BeginDirectory();
+                                else
+                                    Showing.EndDirectory();
                                 break;
                             case "MENU":
+                                if (i.IsStartTag)
+                                    Showing.BeginMenu();
+                                else
+                                    Showing.EndMenu();
                                 break;
                             case "DL":
+                                if (i.IsStartTag)
+                                    Showing.BeginDefinitionList();
+                                else
+                                    Showing.EndDefinitionList();
                                 break;
                             case "DT":
-                                Showing.DrawNewLine();
+                                Showing.DrawDefinitionTerm();
                                 break;
                             case "DD":
-                                Showing.DrawNewLine();
+                                Showing.DrawDefinitionDescription();
                                 break;
                             case "FORM":
                                 break;

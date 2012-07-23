@@ -264,6 +264,26 @@ namespace YWebView
 
         public void DrawList()
         {
+            DrawNewLine();
+            switch (CurrentListType.Peek())
+            {
+                case HtmlTag.ListType.OL:
+                    int lev = OrderedListNumber.Pop();
+                    DrawText(lev.ToString() + ".　");
+                    OrderedListNumber.Push(lev + 1);
+                    break;
+                case HtmlTag.ListType.UL:
+                    DrawText("●　");
+                    break;
+                case HtmlTag.ListType.DIR:
+                    DrawText("・　");
+                    break;
+                case HtmlTag.ListType.MENU:
+                    DrawText("・　");
+                    break;
+                default:
+                    break;
+            }
         }
 
         public void BeginHeader(int level)
@@ -282,42 +302,86 @@ namespace YWebView
 
         public void BeginUnorderedList()
         {
+            CurrentListType.Push(HtmlTag.ListType.UL);
+            ++IndentLevel;
+            DrawNewParagraph();
         }
 
         public void EndUnorderedList()
         {
+            CurrentListType.Pop();
+            --IndentLevel;
+            DrawNewParagraph();
         }
 
         public void BeginOrderedList()
         {
+            CurrentListType.Push(HtmlTag.ListType.OL);
+            OrderedListNumber.Push(1);
+            ++IndentLevel;
+            DrawNewParagraph();
         }
 
         public void EndOrderedList()
         {
+            CurrentListType.Pop();
+            OrderedListNumber.Pop();
+            --IndentLevel;
+            DrawNewParagraph();
         }
 
         public void BeginDirectory()
         {
+            CurrentListType.Push(HtmlTag.ListType.DIR);
+            ++IndentLevel;
+            DrawNewParagraph();
         }
 
         public void EndDirectory()
         {
+            CurrentListType.Pop();
+            --IndentLevel;
+            DrawNewParagraph();
         }
 
         public void BeginMenu()
         {
+            CurrentListType.Push(HtmlTag.ListType.MENU);
+            ++IndentLevel;
+            DrawNewParagraph();
         }
 
         public void EndMenu()
         {
+            CurrentListType.Pop();
+            --IndentLevel;
+            DrawNewParagraph();
         }
 
-        public void BeginDefineTerm()
+        public void BeginDefinitionList()
         {
+            DrawNewParagraph();
+            CurrentListType.Push(HtmlTag.ListType.DL);
+            OrderedListNumber.Push(IndentLevel);
         }
 
-        public void EndDefineTerm()
+        public void EndDefinitionList()
         {
+            CurrentListType.Pop();
+            IndentLevel = OrderedListNumber.Pop();
+            DrawNewParagraph();
+        }
+
+        public void DrawDefinitionTerm()
+        {
+            IndentLevel = OrderedListNumber.Peek();
+            DrawNewParagraph();
+        }
+
+        public void DrawDefinitionDescription()
+        {
+            IndentLevel = OrderedListNumber.Peek() + 1;
+            DrawNewLine();
         }
 
         public void BeginMarkup(FontStyle style, bool monospace = false)
