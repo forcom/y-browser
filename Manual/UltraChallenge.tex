@@ -1,0 +1,342 @@
+\documentclass[12pt]{jreport}
+\usepackage[dvips]{graphicx}
+\title{ウルトラチャレンジ問題の説明}
+\author{24115172 Yoon SeungYong}
+\date{2012. 07. 24.}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+この文書は平成２４年度プログラミングI講義の「ウルトラチャレンジ問題
+２０１２」を解き、その開発過程かつ補足説明を述べるものである。特にこの
+文書は問題４のウエブブラウザの開発過程を詳細に扱っている。
+
+HTML2.0の規格を遵守している問題４のウエブブラウザ「YBrowser」はWindows 7
+ 日本語版でMicrosoft Visual C\verb+#+ 2010を用いて.NET Framework 4.0を基
+ 盤として開発し、githubの分散バージョン管理システムで管理されている。
+\end{abstract}
+
+\tableofcontents
+
+\chapter{ウエブブラウザ}
+
+ウルトラチャレンジ問題２０１２
+
+問題４。ウエブブラウザを作成せよ。
+
+
+\section{問題分析}
+
+\subsection{規格の採用}
+
+ウエブブラウザはHyperText Markup Language(HTML)で作成された文書を解釈し表示す
+るプログラムである。特にHypertext Transfer Protocol(HTTP)を通じてインター
+ネット上のHTML文書を表示するのが主な目的である。現在HTML4.01またXHTML1.0
+の規格が発表されウエブサイトに通用されていて、次世代の言語であるHTML5が
+標準化の手順を踏んでいる。HTMLを視覚化するウエブブラウザではMicrosoft
+Internet Explorer, Mozilla Firefox, Google Chromeなどが主に使われてい
+る。
+
+ウルトラチャレンジ問題の解答としてウエブブラウザとして最新標準である
+HTML4.01を具現したら最高であろうが、２週間の短い期間ではHTML4.01の数百ペー
+ジのRFC文書を読むことすら容易くないので設計の範囲を縮小するしかない。よっ
+て旧規格であるHTML3.0とHTML2.0に従い開発することにした。ところがHTML3.0
+とHTML2.0は1997年HTML4.0の発表と同時に廃止されたので実際作らない方がよい
+とされる。今回の解答としてはHTML2.0の規格を守るウエブページを表示するウ
+エブブラウザの提出を目標とした。
+
+\subsection{HTML 2.0の分析}
+
+HTMLはテキスト情報処理のISO標準であるStandard Generalized Markup
+Language(SGML)を利用して定義された言語である。よってHTMLの各要素をSGMLで定義し
+たDocument Type Definition(DTD)が存在し、DTDを基準としてHTMLを分析すれば
+よい。
+
+RFC1866で定義しているHTML文書はSGMLで作成されてHTML DTDを遵守する
+RFC1866の慣習を守るものである。HTML DTDに定義された要素中
+HTML.Recommendedは有用に使えるが必ず要るものではないものに付けられ、
+HTML.Deprecatedは旧バージョンで使われたが何らかの理由で使わないことを進
+めているものに表記されている。User Agentつまりブラウザは次に従うべきだ。
+HTML文書をSGMLに従いデータ列とマークアップ要素で常に同じく分解できリンク
+を通じて文書間の移動が可能である。第２水準ブラウザは追加的にフォームフィー
+ルドを用いて情報の交換が可能なものである。
+
+HTML文書での要素たちは木の構造をしている。一部の要素は始めのタグと終わり
+のタグがあり、またタグの間で互い影響を与える場合もある。
+
+HTMLの要素は大きくデータ列、タグ、アトリビュート、コメントとして分けられ
+る。データ列は画面に表示されるテキストを表す。タグに用いられるが打ちにく
+い文字は特集な方法で表す。\&lt;のように文字の名前を入れたり、\&\verb+#+60;のご
+とく文字コードを用いて表示するものがある。ただし、;は場合により省略でき
+るが文字の間に空白を入れるのは許さない。始めのタグは常に<で始まり>で終わらな
+くてはならない。同じく終わりのタグは常に</で始まり>で終わる。<また</の後
+にタグの名前が入り、その間の空白は許さない。ところが>の前の空白はあり得
+る。タグ、アトリビュート、特殊文字などに使われる名前は文字、数字、点、ハ
+イフンで72字以内で構成され大文字と小文字の区分をしない。ただし、特殊文字
+の名前は例外として大文字と小文字の区分をする。アトリビュートは始めのタグ
+にあるものでアトリビュート名と等号、値で構成されるがアトリビュー
+ト名だけで構成される場合もある。また等号の周りの空白は許容される。文字列
+の値の場合ダブルクオーテーションやシングルクオーテーションで囲まれるがそ
+の間に同じクオーテーションがあってはならない。コメントは<!で始まるタグで、
+複数の行を含む場合は<!--で始め-->で終わらせる。トークンを分けるとき消し
+た方がよいとされる。
+
+HTTPを用いて通信する場合サーバは転送するものがHTML文書であることをMedia
+Typeをtext/htmlで表記して示す。
+
+もし分析途中未確認の要素があったらタグやアトリビュートの場合無視して、特
+殊もにはそのまま残すことを原則とする。
+
+\section{プログラム設計}
+
+\subsection{ライブラリ}
+
+まず、ウルトラチャレンジ問題らしく.NET Frameworkで提供しているWebBrowser
+コントロールとHtmlDocumentなどの要素を使わないことにした。
+
+HTML文書を表示するため二つのことを考えた。
+\begin{enumerate}
+\item RichTextBoxを用いる
+\item GDI+ツールで絵として直接描く。
+\end{enumerate}
+
+\subsection{構造}
+
+\begin{itemize}
+  \item Core : HTMLの元を宣言
+    \begin{itemize}
+      \item HTMLの各要素を保存するクラス。
+        \begin{itemize}
+          \item Attribute
+          \item AttributeCollection
+          \item Element
+          \item Document
+        \end{itemize}
+      \item HTMLの分析に関わるクラス。
+        \begin{itemize}
+          \item HtmlTokenizer
+          \item HtmlParser
+          \item HtmlReader
+        \end{itemize}
+    \end{itemize}
+  \item Test : 各コントロールをテスト
+　\item YWebView : 画面表示コントロール
+    \begin{itemize}
+      \item YWebView : UI担当
+      \item NetProcess : ネットワーク担当
+    \end{itemize}
+  \item YBrowser : Win32アプリケーション
+\end{itemize}
+
+
+\section{プログラム開発}
+
+全ての開発過程はgithubに保存されている。
+\begin{verbatim}
+     https://github.com/forcom/y-browser/
+     git-clone: git@github.com:forcom/y-browser.git
+\end{verbatim}
+
+開発順番は全体的にプログラムの構造の順番と同じである。
+
+\begin{enumerate}
+  \item Core.HTMLの要素
+  \item Core.HtmlTokenizer
+  \item Core.HtmlParser
+  \item Core.HtmlReader
+  \item Test
+  \item YWebView.NetProcess
+  \item Core.HtmlTag
+  \item YWebView.DrawPage
+  \item YWebView.YWebView
+  \item YBrowser
+\end{enumerate}
+
+\subsection{Core.HTMLの要素}
+
+最初にこの段階で訂正のコミットが相当多いことが分かる。一番重要な部分であ
+るので数回のテストを通して適切な構造を作った。
+
+
+\subsection{Core.HtmlTokenizer}
+
+HTMLの各要素を分離するクラスである。この部分は予想より早く終わった。去年
+C\verb+#+でLispを具現した経験が役に立った。正規表現式を用いてトークンを
+分離して、DTDで定義されたタグとアトリビュートを前処理したマップにトーク
+ンをあわせて簡単に済ませた。
+
+
+\subsection{Core.HtmlParser}
+
+分離したトークンがHTML DTDの定義通り正確に構成されたかを確認する部分であ
+る。この段階でコメントと定義されていないタグは無視して削除した。またツリー
+構造をなっていないタグも適切に調整するようにした。
+
+
+\subsection{Core.HtmlReader}
+
+HtmlTokenizerとHtmlParserをカプセル化するクラスである。ここでHTML文字列
+をDocumentクラスで得られる。
+
+
+\subsection{Test}
+
+HTML2.0を遵守するページをテストケースとしてCoreをテストした。
+
+
+\subsection{YWebView.NetProcess}
+
+HTTP通信を担当するクラスである。YWebViewで処理するか分離するか悩んでいた
+が分離したのが正解であった。ネットワークプログラミングはソケットプログラ
+ミングの代わりにSystem.Netを用いて作業した。ソケットコーディングを始める
+とHTTPに関するRFC文書を見ることになるからである。
+
+
+\subsection{Core.HtmlTag}
+
+DrawPageの作業を始める際にタグが少し扱い難くてHtmlTokenizerとHtmlParser
+を見直すようになった。HTML DTDの前処理が結局同じなのにHtmlTokenizerと
+HtmlParserが独自に作っていることを発見し、HTML DTDの宣言のため作られた各
+種マップをHtmlTagに集めて一つにあわせた。他のタグの作業や定義ができるよ
+うにする目的もある。その例がHtmlTag.ListTypeである。
+
+
+\subsection{YWebView.DrawPage}
+
+DrawPageを作業する前にRichTextBoxを使う計画を持っていたがRichTextBoxが
+Microsoftが規定しているRTFの水準まで及んでいないことを気づき、直接絵を描
+いて表示することを選んだ。絵を描くことの一番難しいところはテキストを描く
+ことである。画面の右端に達したら区切ってまた左から始めないとならない。
+GDI+ツールのMeasureStringを用いて丁寧に区切りを探して表示させた。計画を
+急に変え締め切りに迫られ多少気早に作業した感じがあってコメントも付けず、
+コードが少し汚くなった感じがする。また基準点を描く対象の左上に設定したが
+作業が殆ど終わった頃左下の方が綺麗に描けることに気づいたが締め切りにあわ
+せない感じがして現状を維持することにした。
+
+
+\subsection{YWebView.YWebView}
+
+DrawPageの作業と同時にYWebViewのところも並行した。元々YWebViewがDrawPage
+やNetProcessより上位のコントロールであるので当然のことだろう。YBrowserに
+貼り付ける準備のためイベントなどを実装した。
+
+
+\subsection{YBrowser}
+
+大部分の機能がYWebViewに実装されていたのでアドレスバーとステータスバーを
+挿入しYWebViewを貼り付けることでYBrowserが完成になった。
+
+
+\section{テスト及びデバッグ}
+
+
+テストとデバッグは開発の間でユニットテスト形式で行われた。完成度テストは
+次のように直接ウエブページを航海した画面と既存のウエブブラウザの画面の違
+いで判断した。
+
+
+\subsection{HTML 2.0ページ}
+
+\begin{verbatim}
+    Test Site : http://www.w3.org/MarkUp/html-spec/
+                ここで繋がっているHTML2.0のページ。
+\end{verbatim}
+
+殆ど正確表示されているがイメージの位置やホワイトスペースの間隔、リストの
+表示が少し不安定であるところが見える。ページの移動は順調に行っているが時々
+理由不明でアクセスができないところがある。またブックマークには移動ができ
+ない。でもウエブページとして読めないぐらいではない。
+
+
+\subsection{上位バージョンのページ}
+
+\begin{verbatim}
+    Test Site : http://www.google.com/
+\end{verbatim}
+
+当たり前のことであろうが正確に表示されていない。
+
+
+\section{自己評価}
+
+短い期間であったがウエブブラウザが作られたのは嬉しいこどだ。ところが完璧
+にHTML2.0を具現することにはまだ遠く見える。Internet Explorerなどの常用プ
+ログラムではGPUの加速技術を使うなど最適化されている。このような技術を学
+ばないといけないと思う。また、何気なく使っているコントロールが実際には作
+りにくいものであることを実感する機会になった。
+
+
+\chapter{開発マニュアル}
+この章ではYBrowserの開発のための環境且つビルドの手順を述べる。
+
+
+\section{コンパイル}
+
+\subsection{ソースコードの取得}
+
+このプロジェクトはgithubで公開プロジェクトとして管理されているのでgitを
+用いて最新のソースコードを取得することができる。次の命令を通じて簡単に入
+手可能である。
+
+  \begin{itemize}
+  \item
+    \begin{verbatim}
+    git clone git@github.com:forcom/y-browser.git
+    \end{verbatim}
+  \end{itemize}
+
+\subsection{システム環境}
+
+このプログラムはWindowsシステムを基盤として開発されたので次のような環境
+を求められる。
+
+  \begin{itemize}
+  \item Windows Vista 以上
+  \item .NET Framework 4.0
+  \item Microsoft Visual Studio 2010 (C\verb+#+付き)
+  \end{itemize}
+
+
+\subsection{ビルド手順}
+
+このソリューションは次の順序でプロジェクトをビルドし、バイナリが得られる。
+
+  \begin{enumerate}
+  \item Core
+　\item YWebView
+  \item YBrowser
+  \end{enumerate}
+
+
+\chapter{操作マニュアル}
+この章ではYBrowserの操作方法を述べる。
+
+
+\section{実行方法}
+
+.NET Framework 4.0 再配布パッケージが取り付けられたWindows Vista以上日本
+語版のパソコンでビルドされたYBrowser.exeを実行する。ただし、YBrowser.exe
+の同じ経路にCore.dll, YWebView.dllがあることを確認すること。
+
+
+\section{操作法}
+
+プログラムの画面は上端にアドレスバーと移動ボタンがあり、真ん中にビューア
+が配置され、下端にはステータスバーが位置している。
+
+アドレスバーに移動しようとしているウエブサイトのURLを入力しEnterキーを押
+すか移動ボタンをクリックする。ページ移動中にはステータスバーに'Opening
+Page...'と表示され、読み込みが終わったとき'Completed.'と表す。
+
+ビューアでリンクにカーソルをかざすと手の模様で変わる。リンクをクリックす
+るとそのリンクのページに移動する。また説明のあるイメージやリンクにカーソ
+ルをかざすとその説明がツールティップで現れる。
+
+\begin{thebibliography}{99}
+\bibitem{1} IETF, RFC 1866: Hypertext Markup Language - 2.0, 1995.
+\bibitem{2} Harold Abelson外, Structure and Interpretation of Computer
+	Programs 2/E, MIT Press, 1996.
+\bibitem{3} Microsoft, Microsoft Developer Network Library, 2012.
+\end{thebibliography}
+
+\end{document}
