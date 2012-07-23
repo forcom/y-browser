@@ -19,6 +19,7 @@ namespace YWebView
         static Document workingPage;
         static Uri workingUrl;
         static bool workingdownload;
+        public static bool IsError { get; set; }
 
         static Queue<HttpWebResponse> DownloadQueue = new Queue<HttpWebResponse>();
 
@@ -36,6 +37,8 @@ namespace YWebView
             }
             catch
             {
+                IsError = true;
+                workingdownload = true;
                 // Throw Unable to Connect
                 return;
             }
@@ -69,6 +72,8 @@ namespace YWebView
             }
             catch
             {
+                IsError = true;
+                workingdownload = true;
                 // Error occured.
             }
         }
@@ -82,6 +87,8 @@ namespace YWebView
             }
             catch (UriFormatException)
             {
+                IsError = true;
+                workingdownload = true;
                 // Throw Incorrect Url
                 return;
             }
@@ -92,6 +99,7 @@ namespace YWebView
                 while (curNavigate.ThreadState == ThreadState.Running) ;
             }
 
+            IsError = false;
             workingUrl = _uri;
             workingPage = null;
             workingdownload = false;
