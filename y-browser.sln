@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YWebView", "YWebView\YWebVi
 		{E297EE94-C9BA-401E-8A99-643ED674DA13} = {E297EE94-C9BA-401E-8A99-643ED674DA13}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YBrowser", "YBrowser\YBrowser.csproj", "{3792AC62-D614-47F7-A2C0-15DFF43D19AD}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = y-browser.vsmdi
@@ -62,6 +64,16 @@ Global
 		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{50A98207-FCD7-41CE-8FD8-8DF8241093C8}.Release|x86.ActiveCfg = Release|Any CPU
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Debug|x86.ActiveCfg = Debug|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Debug|x86.Build.0 = Debug|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Release|Any CPU.ActiveCfg = Release|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Release|Mixed Platforms.Build.0 = Release|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Release|x86.ActiveCfg = Release|x86
+		{3792AC62-D614-47F7-A2C0-15DFF43D19AD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
