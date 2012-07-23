@@ -62,6 +62,7 @@
             this.button1.TabIndex = 1;
             this.button1.Text = "button1";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Visible = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // YWebView
@@ -75,6 +76,7 @@
             this.ForeColor = System.Drawing.Color.Black;
             this.Name = "YWebView";
             this.Size = new System.Drawing.Size(800, 600);
+            this.Resize += new System.EventHandler(this.YWebView_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.Page)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

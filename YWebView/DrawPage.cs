@@ -31,9 +31,9 @@ namespace YWebView
         Stack<Brush> DrawBrush = new Stack<Brush>();
         Stack<int> MarkupRegion = new Stack<int>();
 
-        public DrawPage()
+        public DrawPage(Size defaultSize)
         {
-            DefaultSize = new Size(780, 600);
+            DefaultSize = defaultSize;
             LeftMargin = 20;
             TopMargin = 20;
             RightMargin = 20;

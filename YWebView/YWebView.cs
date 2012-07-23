@@ -72,7 +72,7 @@ namespace YWebView
 
             HyperlinkInformation curlink = null;
 
-            DrawPage Showing = new DrawPage();
+            DrawPage Showing = new DrawPage(this.Size);
 
             curDoc = np.CurrentPage;
             StringBuilder sb = new StringBuilder();
@@ -347,6 +347,11 @@ namespace YWebView
         {
             if (tmrNavigate.Enabled) return;
             tmrShowPage.Enabled = false;
+            if (NetProcess.IsError)
+            {
+                MessageBox.Show("Error: Cannot Surf the Internet.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             ShowPage();
         }
 
@@ -393,6 +398,11 @@ namespace YWebView
                     }
                 }
             }
+        }
+
+        private void YWebView_Resize(object sender, EventArgs e)
+        {
+            ShowPage();
         }
     }
 }
