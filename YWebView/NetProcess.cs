@@ -28,6 +28,7 @@ namespace YWebView
         {
             if (++retry > 5) return;
 
+            HttpWebRequest.DefaultWebProxy = null;
             HttpWebRequest wq = (HttpWebRequest)HttpWebRequest.Create(workingUrl);
             HttpWebResponse wr = null;
 

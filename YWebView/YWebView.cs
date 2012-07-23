@@ -63,6 +63,8 @@ namespace YWebView
 
         public void Navigate(string _Url)
         {
+            if (OnNavigating != null)
+                OnNavigating(this, new EventArgs());
             np.Navigate(_Url);
             tmrNavigate.Enabled = true;
             tmrShowPage.Enabled = true;
@@ -362,8 +364,6 @@ namespace YWebView
                 MessageBox.Show("Error: Cannot Surf the Internet.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (OnNavigating != null)
-                OnNavigating(this, new EventArgs());
             ShowPage();
         }
 
