@@ -40,8 +40,12 @@ namespace YWebView
         }
 
         public string Title { get; set; }
+        public string Url { get; set; }
         public string StatusText { get; set; }
         public List<HyperlinkInformation> Hyperlinks { get; set; }
+
+        public event EventHandler OnPageLoaded;
+        public event EventHandler OnNavigating;
 
         NetProcess np = new NetProcess();
         Document curDoc = null;
@@ -52,13 +56,14 @@ namespace YWebView
         {
             InitializeComponent();
             Title = "";
+            Url = "";
             tmrNavigate.Tick += new EventHandler(np.tmrNavigate_Tick);
             Hyperlinks = new List<HyperlinkInformation>();
         }
 
-        public void Navigate(string Url)
+        public void Navigate(string _Url)
         {
-            np.Navigate(Url);
+            np.Navigate(_Url);
             tmrNavigate.Enabled = true;
             tmrShowPage.Enabled = true;
         }
@@ -341,6 +346,11 @@ namespace YWebView
 
             Page.Image = Showing.Page;
             Hyperlinks = _hyperlink;
+            Url = np.Url.OriginalString;
+            this.VerticalScroll.Value = 0;
+            this.HorizontalScroll.Value = 0;
+            if (OnPageLoaded != null)
+                OnPageLoaded(this, new EventArgs());
         }
 
         private void tmrShowPage_Tick(object sender, EventArgs e)
@@ -352,6 +362,8 @@ namespace YWebView
                 MessageBox.Show("Error: Cannot Surf the Internet.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            if (OnNavigating != null)
+                OnNavigating(this, new EventArgs());
             ShowPage();
         }
 
@@ -402,6 +414,8 @@ namespace YWebView
 
         private void YWebView_Resize(object sender, EventArgs e)
         {
+            if (np.CurrentPage == null)
+                return;
             ShowPage();
         }
     }
